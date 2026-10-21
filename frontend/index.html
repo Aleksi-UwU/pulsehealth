@@ -207,18 +207,22 @@
       </div>
 
       <!-- Quick Action Buttons -->
-      <div class="action-grid">
+      <div class="action-grid" style="grid-template-columns: repeat(2, 1fr); gap: 10px;">
         <button class="btn-action highlight" onclick="openModal('modal-ai-text')">
           <span class="btn-action-icon">✨</span>
           <span>AI Food Log</span>
+        </button>
+        <button class="btn-action" onclick="openModal('modal-ai-photo')">
+          <span class="btn-action-icon">📸</span>
+          <span>Photo Plate</span>
         </button>
         <button class="btn-action" onclick="startBarcodeScanner()">
           <span class="btn-action-icon">🏷️</span>
           <span>Scan Barcode</span>
         </button>
-        <button class="btn-action" onclick="openModal('modal-ai-photo')">
-          <span class="btn-action-icon">📸</span>
-          <span>Photo Plate</span>
+        <button class="btn-action" style="border-color: var(--neo-lime);" onclick="openModal('modal-equipment')">
+          <span class="btn-action-icon">🏋️</span>
+          <span>Gym Machine GIF</span>
         </button>
       </div>
     </section>
@@ -300,6 +304,11 @@
             <p>Powered by Gemini 3.8 Flash • Real-time Watch telemetry</p>
           </div>
         </div>
+
+        <button class="btn-action highlight" style="margin-bottom: 14px; width: 100%; border: 2px solid var(--neo-lime);" onclick="openModal('modal-equipment')">
+          <span class="btn-action-icon">🏋️</span>
+          <span>Scan Machine for Form GIF & Guide</span>
+        </button>
 
         <!-- Dynamic Prescription content -->
         <div id="coach-prescription-content">
@@ -677,6 +686,33 @@
       <button class="btn-primary" onclick="submitManualHealthSync()">
         Sync Metrics Now
       </button>
+    </div>
+  </div>
+
+  <!-- MODAL: GYM EQUIPMENT SCANNER & GIF GUIDE -->
+  <div class="modal-overlay" id="modal-equipment">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-header">
+        <div class="modal-title">🏋️ Gym Machine Guide & Form GIF</div>
+        <button class="btn-close" onclick="closeModal('modal-equipment')">✕</button>
+      </div>
+      <p style="font-size: 12px; color: var(--text-dim); margin-bottom: 12px;">
+        Take a picture of any gym machine or cable station. Get instant seat adjustments, biomechanics cues, and an animated movement GIF.
+      </p>
+
+      <div class="form-group">
+        <label class="form-label">Take Photo / Upload Machine</label>
+        <input type="file" id="equipment-photo-file" accept="image/*" capture="environment" class="form-input" />
+      </div>
+      <img id="equipment-photo-preview" src="" alt="Machine Preview" style="display: none; width: 100%; height: 160px; object-fit: cover; border-radius: var(--radius-md); margin-bottom: 12px; border: 2px solid #2e3348;" />
+
+      <button class="btn-primary" id="btn-equipment-submit" onclick="submitGymEquipmentScan()">
+        Scan Machine & Show GIF Guide
+      </button>
+
+      <!-- Dynamic Results Container -->
+      <div id="equipment-results-container" style="margin-top: 14px;"></div>
     </div>
   </div>
 

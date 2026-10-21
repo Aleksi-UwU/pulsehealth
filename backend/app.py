@@ -354,6 +354,19 @@ def scan_barcode(code: str):
         raise HTTPException(status_code=404, detail=f"Barcode {code} not found in food database")
     return {"status": "success", "product": result}
 
+@app.post("/api/coach/scan-equipment")
+async def scan_gym_equipment(file: UploadFile = File(...)):
+    """
+    AI Multimodal camera / photo gym equipment identifier and exercise guide with demonstration GIF.
+    """
+    try:
+        contents = await file.read()
+        mime = file.content_type or "image/jpeg"
+        guide = ai_coach.identify_gym_equipment(contents, mime_type=mime)
+        return {"status": "success", "guide": guide}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.post("/api/coach/generate")
 def generate_coach_recommendation(target_date: Optional[str] = None):
     """
@@ -428,6 +441,16 @@ def chat_with_ai_coach(req: CoachChatRequest):
         return {"status": "success", "reply": reply}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/workouts")
+def create_workout(workout_data: Dict[str, Any]):
+    """
+    Log or add a workout directly to the database.
+    """
+    if "date" not in workout_data:
+        workout_data["date"] = date.today().isoformat()
+    res = db.add_workout(workout_data)
+    return {"status": "success", "workout": res}
 
 @app.post("/api/workouts/toggle/{workout_id}")
 def toggle_workout(workout_id: int):

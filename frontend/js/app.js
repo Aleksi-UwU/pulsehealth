@@ -829,6 +829,20 @@ function setupEventListeners() {
     });
   }
 
+  const equipInput = document.getElementById("equipment-photo-file");
+  if (equipInput) {
+    equipInput.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const preview = document.getElementById("equipment-photo-preview");
+        if (preview) {
+          preview.src = URL.createObjectURL(file);
+          preview.style.display = "block";
+        }
+      }
+    });
+  }
+
   // Autonomous live sync when user returns to app/focus
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") {
@@ -849,6 +863,151 @@ function setupEventListeners() {
       }
     }
   });
+}
+
+// --- Gym Equipment Scanner & Form GIF Guide ---
+let currentScannedGuide = null;
+
+async function submitGymEquipmentScan() {
+  const fileInput = document.getElementById("equipment-photo-file");
+  if (!fileInput || !fileInput.files.length) {
+    alert("Please snap or select a photo of the gym equipment.");
+    return;
+  }
+
+  const btn = document.getElementById("btn-equipment-submit");
+  const container = document.getElementById("equipment-results-container");
+  btn.innerHTML = `<span class="loading-spinner"></span> Identifying Machine & Form GIF...`;
+  btn.disabled = true;
+  container.innerHTML = `<div style="text-align: center; padding: 24px 0; color: var(--accent-cyan); font-weight: 700; font-size: 13px;">
+    🔍 Analyzing biomechanics, identifying machine, and querying exercise GIF library...
+  </div>`;
+
+  const formData = new FormData();
+  formData.append("file", fileInput.files[0]);
+
+  try {
+    const res = await fetch("/api/coach/scan-equipment", {
+      method: "POST",
+      body: formData
+    });
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.detail || "Server error while scanning equipment");
+    }
+    const data = await res.json();
+    currentScannedGuide = data.guide;
+    renderEquipmentGuide(data.guide);
+  } catch (err) {
+    container.innerHTML = `<div style="padding: 12px; background: rgba(255, 75, 75, 0.15); border: 2px solid var(--accent-red); border-radius: var(--radius-sm); color: var(--accent-red); font-size: 13px; font-weight: 600;">
+      ❌ Failed to analyze gym equipment: ${escapeHtml(err.message)}
+    </div>`;
+  } finally {
+    btn.innerHTML = `Scan Machine & Show GIF Guide`;
+    btn.disabled = false;
+  }
+}
+
+function renderEquipmentGuide(guide) {
+  const container = document.getElementById("equipment-results-container");
+  if (!container || !guide) return;
+
+  const primaryMuscle = guide.primary_muscle || "Full Body";
+  const secondaries = (guide.secondary_muscles || []).map(m => `<span class="equipment-tag">${escapeHtml(m)}</span>`).join(" ");
+  const setupList = (guide.setup_steps || []).map(s => `<li>${escapeHtml(s)}</li>`).join("");
+  const executionList = (guide.execution_steps || []).map(s => `<li>${escapeHtml(s)}</li>`).join("");
+  const mistakesList = (guide.common_mistakes || []).map(m => `<li>${escapeHtml(m)}</li>`).join("");
+  const prescription = guide.recommended_prescription || "3-4 sets × 10-12 reps";
+
+  const gifHtml = guide.gif_url ? `
+    <div class="equipment-gif-container">
+      <img src="${escapeHtml(guide.gif_url)}" alt="${escapeHtml(guide.equipment_name || 'Gym Machine')} Form GIF" class="equipment-gif" loading="lazy" onerror="this.onerror=null; this.parentElement.innerHTML='<div style=\\'padding: 20px; text-align: center; color: var(--text-dim); font-size: 12px;\\'>🎬 Demonstration GIF preview unavailable.</div>';" />
+    </div>
+  ` : '';
+
+  container.innerHTML = `
+    <div class="equipment-card">
+      <div style="font-size: 18px; font-weight: 900; color: #fff; margin-bottom: 8px; letter-spacing: -0.3px;">
+        ${escapeHtml(guide.equipment_name || "Identified Gym Machine")}
+      </div>
+      
+      <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px;">
+        <span class="equipment-tag primary">🎯 ${escapeHtml(primaryMuscle)}</span>
+        ${secondaries}
+      </div>
+
+      ${gifHtml}
+
+      <div style="background: rgba(0, 229, 255, 0.1); border: 1.5px solid var(--accent-cyan); border-radius: var(--radius-sm); padding: 8px 12px; margin-bottom: 14px; font-size: 12px; font-weight: 700; color: var(--accent-cyan); display: flex; align-items: center; justify-content: space-between;">
+        <span>📋 Recommended:</span>
+        <span style="color: #fff;">${escapeHtml(prescription)}</span>
+      </div>
+
+      <div class="equipment-guide-section">
+        <div class="equipment-guide-title">⚙️ Machine Setup & Adjustments</div>
+        <ol class="equipment-guide-list">
+          ${setupList || '<li>Adjust seat and thigh pad height for secure anchoring.</li>'}
+        </ol>
+      </div>
+
+      <div class="equipment-guide-section">
+        <div class="equipment-guide-title">💪 Execution & Form Cues</div>
+        <ol class="equipment-guide-list">
+          ${executionList || '<li>Maintain stable core, control movement through full range of motion.</li>'}
+        </ol>
+      </div>
+
+      ${mistakesList ? `
+      <div class="equipment-guide-section" style="border-left: 3px solid var(--accent-red); padding-left: 8px;">
+        <div class="equipment-guide-title" style="color: var(--accent-red);">⚠️ Avoid These Common Mistakes</div>
+        <ul class="equipment-guide-list" style="list-style-type: disc;">
+          ${mistakesList}
+        </ul>
+      </div>
+      ` : ''}
+
+      <button class="btn-primary" style="margin-top: 14px; background: var(--accent-cyan); color: #000;" onclick="addScannedExerciseToWorkout()">
+        ➕ Add to Today's Workout
+      </button>
+    </div>
+  `;
+}
+
+async function addScannedExerciseToWorkout() {
+  if (!currentScannedGuide) return;
+  const g = currentScannedGuide;
+
+  try {
+    const res = await fetch("/api/workouts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: g.equipment_name || "Gym Machine Exercise",
+        workout_type: "strength",
+        duration_minutes: 15,
+        calories_burned: 90,
+        exercises_json: [
+          {
+            name: g.equipment_name || "Exercise",
+            sets: 3,
+            reps: "10-12",
+            rest_seconds: 60,
+            form_tip: g.execution_steps ? g.execution_steps[0] : (g.recommended_prescription || "")
+          }
+        ],
+        notes: `Target: ${g.primary_muscle || 'Full Body'}. GIF Guide: ${g.gif_url || 'N/A'}`
+      })
+    });
+    if (res.ok) {
+      alert(`✅ "${g.equipment_name}" added to today's workout plan!`);
+      closeModal("modal-equipment");
+      await loadDashboard();
+    } else {
+      alert("Failed to add exercise to workout.");
+    }
+  } catch (err) {
+    alert("Error logging workout: " + err.message);
+  }
 }
 
 // Utility

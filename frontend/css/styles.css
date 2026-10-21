@@ -1016,3 +1016,76 @@ body {
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+/* Gym Equipment Scanner & Form GIF Guide */
+.equipment-card {
+  background: var(--bg-card);
+  border: var(--border-thick);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  box-shadow: var(--shadow-block-sm);
+  margin-top: 14px;
+}
+
+.equipment-gif-container {
+  width: 100%;
+  border-radius: var(--radius-md);
+  border: 2.5px solid var(--neo-lime);
+  overflow: hidden;
+  box-shadow: var(--shadow-block-sm);
+  background: #000;
+  margin: 12px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.equipment-gif {
+  width: 100%;
+  max-height: 260px;
+  object-fit: contain;
+  display: block;
+}
+
+.equipment-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--neo-cyan);
+  color: #000;
+  border: 1.5px solid #000;
+  box-shadow: var(--shadow-block-sm);
+  margin-right: 6px;
+  margin-bottom: 8px;
+}
+
+.equipment-tag.primary {
+  background: var(--neo-lime);
+}
+
+.equipment-guide-section {
+  margin-top: 12px;
+  background: var(--bg-input);
+  border: 1.5px solid #2e3348;
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+}
+
+.equipment-guide-title {
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  color: var(--neo-lime);
+  margin-bottom: 6px;
+}
+
+.equipment-guide-list {
+  font-size: 12px;
+  color: var(--text-dim);
+  line-height: 1.5;
+  padding-left: 18px;
+  margin: 0;
+}

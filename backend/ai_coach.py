@@ -105,6 +105,79 @@ def parse_food_text(text: str) -> Dict[str, Any]:
     raw_output = _call_gemini(contents, system_instruction=system_prompt, response_mime_type="application/json")
     return _extract_json(raw_output)
 
+def identify_gym_equipment(image_bytes: bytes, mime_type: str = "image/jpeg") -> Dict[str, Any]:
+    """
+    Multimodal vision: Identify gym equipment/machine from a photo and generate
+    step-by-step setup, execution form cues, common mistakes, and demonstration GIF.
+    """
+    system_prompt = """
+    You are an elite strength & conditioning coach and biomechanics specialist.
+    Analyze the uploaded photo of gym equipment / machine:
+    1. Identify the exact equipment name (e.g. "Lat Pulldown Machine", "Leg Press (45° Sled)", "Pec Deck Fly Machine", "Seated Cable Row", "Leg Extension Machine", "Smith Machine", "Cable Crossover Station", "Seated Leg Curl", "Preacher Curl Machine").
+    2. Primary & secondary target muscles worked.
+    3. Machine Setup Guide: Pin placement, seat height, backrest/thigh pad adjustment.
+    4. Step-by-step Execution Form: Grip, posture, eccentric/concentric cadence, breathing.
+    5. Common Mistakes to avoid: Form breakdowns that cause injury or reduce target muscle engagement.
+    6. Recommended Sets & Reps for fat loss / muscle retention.
+    7. GIF Mapping: Select the best matching muscle category and relative file from the library:
+       - Chest: "pectorals/lever-seated-chest-press.gif", "pectorals/lever-pec-deck-fly.gif", "pectorals/cable-crossover.gif", "pectorals/smith-bench-press.gif"
+       - Back: "lats/cable-pulldown.gif", "lats/cable-seated-row.gif", "upper-back/lever-seated-row.gif"
+       - Shoulders: "delts/lever-shoulder-press.gif", "delts/cable-lateral-raise.gif", "delts/lever-seated-reverse-fly.gif"
+       - Legs: "quads/lever-leg-extension.gif", "hamstrings/lever-seated-leg-curl.gif", "hamstrings/lever-lying-leg-curl.gif", "quads/sled-45-degrees-leg-press.gif", "quads/sled-hack-squat.gif", "calves/lever-standing-calf-raise.gif"
+       - Arms: "triceps/cable-pushdown.gif", "biceps/cable-bicep-curl.gif", "biceps/lever-preacher-curl.gif"
+       - Core: "abs/cable-crunch.gif", "abs/lever-seated-crunch.gif"
+
+    Output strictly in this JSON format:
+    {
+        "equipment_name": "Seated Lat Pulldown Machine",
+        "primary_muscle": "Latissimus Dorsi (Lats)",
+        "secondary_muscles": ["Biceps", "Rear Deltoids", "Rhomboids"],
+        "setup_steps": [
+            "Adjust thigh pad so knees are locked snug with feet flat on the floor.",
+            "Choose a wide grip (1.5x shoulder width) with overhand or neutral grip.",
+            "Set the weight pin to a moderate resistance where you can control the eccentric phase."
+        ],
+        "execution_steps": [
+            "Sit tall with a slight backward lean (10-15 degrees) and chest pushed out.",
+            "Exhale and drive elbows down towards your back pockets, pulling bar to upper chest.",
+            "Squeeze lats hard for 1 second at the bottom.",
+            "Inhale and return bar under control for 2-3 seconds until full lat stretch at top."
+        ],
+        "common_mistakes": [
+            "Swinging upper body backward to use momentum rather than lat strength.",
+            "Pulling the bar behind your neck (impinges cervical spine and rotator cuff).",
+            "Shrugging shoulders up to ears instead of depressing scapulae."
+        ],
+        "recommended_prescription": "3-4 sets × 10-12 reps (60s rest)",
+        "gif_file": "lats/cable-pulldown.gif",
+        "gif_url": "https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@main/lats/cable-pulldown.gif"
+    }
+    """
+    
+    b64_data = base64.b64encode(image_bytes).decode("utf-8")
+    contents = [
+        {
+            "parts": [
+                {
+                    "inlineData": {
+                        "mimeType": mime_type,
+                        "data": b64_data
+                    }
+                },
+                {"text": "Identify this gym machine and provide setup, execution form, common mistakes, and the matching demonstration GIF."}
+            ]
+        }
+    ]
+
+    raw_output = _call_gemini(contents, system_instruction=system_prompt, response_mime_type="application/json")
+    parsed = _extract_json(raw_output)
+    
+    # Ensure gif_url is full CDN URL
+    if "gif_file" in parsed and not parsed.get("gif_url"):
+        parsed["gif_url"] = f"https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@main/{parsed['gif_file'].lstrip('/')}"
+        
+    return parsed
+
 def analyze_food_photo(image_bytes: bytes, mime_type: str = "image/jpeg") -> Dict[str, Any]:
     """
     Multimodal vision: Analyze a food photo to detect items, portions, calories, and macros.
