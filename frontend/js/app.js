@@ -94,6 +94,20 @@ async function loadSyncInfo() {
   }
 }
 
+function copyText(elemId, btnId) {
+  const el = document.getElementById(elemId);
+  if (!el) return;
+  const text = el.textContent.trim();
+  navigator.clipboard.writeText(text);
+  const btn = document.getElementById(btnId);
+  if (btn) {
+    const orig = btn.textContent;
+    btn.textContent = "✓ Copied!";
+    if (navigator.vibrate) navigator.vibrate(20);
+    setTimeout(() => { btn.textContent = orig; }, 2000);
+  }
+}
+
 // --- Render Today Dashboard ---
 function renderDashboard(data) {
   const h = data.health || {};

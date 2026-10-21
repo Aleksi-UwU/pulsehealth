@@ -391,10 +391,36 @@
           </div>
         </div>
 
-        <div style="background: var(--bg-input); padding: 12px; border-radius: var(--radius-md); font-size: 12px; line-height: 1.5; margin-bottom: 12px;">
-          <strong>Apple Shortcuts Webhook:</strong><br>
-          <code id="sync-webhook-url" style="color: var(--apple-exercise); word-break: break-all;">http://.../api/sync/health</code><br>
-          <span style="color: var(--text-muted);">Sync Token: <span id="sync-token-display">health-sync-token-12345</span></span>
+        <div style="background: var(--bg-input); padding: 14px; border-radius: var(--radius-md); font-size: 12px; line-height: 1.5; margin-bottom: 14px; border: 1.5px solid #2e3348;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <strong style="color: var(--text-dim); text-transform: uppercase;">Webhook Endpoint</strong>
+            <button class="section-badge" id="btn-copy-url" style="cursor: pointer; padding: 2px 8px; font-size: 10px;" onclick="copyText('sync-webhook-url', 'btn-copy-url')">📋 Copy</button>
+          </div>
+          <code id="sync-webhook-url" style="color: var(--apple-exercise); word-break: break-all; display: block; margin-bottom: 10px; font-weight: 700;">https://pulsehealth-jade.vercel.app/api/sync/health</code>
+          
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <strong style="color: var(--text-dim); text-transform: uppercase;">Sync Token</strong>
+            <button class="section-badge" id="btn-copy-token" style="cursor: pointer; padding: 2px 8px; font-size: 10px;" onclick="copyText('sync-token-display', 'btn-copy-token')">📋 Copy</button>
+          </div>
+          <code id="sync-token-display" style="color: var(--neo-cyan); word-break: break-all; font-weight: 700;">health-sync-token-12345</code>
+        </div>
+
+        <!-- 60-Second Autonomous Guide -->
+        <div style="background: #111420; border: 2px solid var(--neo-lime); border-radius: var(--radius-md); padding: 14px; margin-bottom: 14px;">
+          <div style="font-size: 13px; font-weight: 900; color: var(--neo-lime); text-transform: uppercase; margin-bottom: 6px;">
+            ⚡ 60-Second Autonomous Setup
+          </div>
+          <p style="font-size: 12px; color: var(--text-dim); margin-bottom: 8px;">
+            Create 1 shortcut named <strong>"Sync PulseHealth"</strong> in Shortcuts app with 2 actions:
+          </p>
+          <ol style="font-size: 11px; color: var(--text-muted); line-height: 1.6; padding-left: 18px; margin-bottom: 10px;">
+            <li><strong>Find Health Samples</strong>: Active Energy, Steps, Exercise Time, HRV, Sleep</li>
+            <li><strong>Get Contents of URL</strong>: POST to the Webhook URL above with your token</li>
+          </ol>
+          <div style="font-size: 11px; font-weight: 800; color: #fff; margin-bottom: 4px;">Then add 1 Automation (Run Immediately):</div>
+          <div style="font-size: 11px; color: var(--neo-cyan); background: var(--bg-input); padding: 6px 10px; border-radius: 4px;">
+            Trigger: <strong>When PulseHealth Opens</strong> (or Workout Ends) ➔ Run "Sync PulseHealth"
+          </div>
         </div>
 
         <button class="btn-secondary" onclick="openModal('modal-manual-sync')">
