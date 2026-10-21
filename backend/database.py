@@ -5,15 +5,28 @@ import requests
 from datetime import datetime, date
 from typing import Optional, Dict, Any, List
 
+# Zero-dependency .env loader
+env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env")
+if os.path.exists(env_path):
+    try:
+        with open(env_path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    k, v = line.split("=", 1)
+                    os.environ.setdefault(k.strip(), v.strip().strip("'\""))
+    except Exception:
+        pass
+
 # Check for Turso Cloud Database or local SQLite
 TURSO_DATABASE_URL = os.environ.get("TURSO_DATABASE_URL", "").strip()
 TURSO_AUTH_TOKEN = os.environ.get("TURSO_AUTH_TOKEN", "").strip()
 
 # Convert libsql:// to https:// for HTTP pipeline API
 if TURSO_DATABASE_URL.startswith("libsql://"):
-    TURSO_HTTP_URL = TURSO_DATABASE_URL.replace("libsql://", "https://")
+    TURSO_HTTP_URL = TURSO_DATABASE_URL.replace("libsql://", "https://").rstrip("/")
 elif TURSO_DATABASE_URL.startswith("http://") or TURSO_DATABASE_URL.startswith("https://"):
-    TURSO_HTTP_URL = TURSO_DATABASE_URL
+    TURSO_HTTP_URL = TURSO_DATABASE_URL.rstrip("/")
 else:
     TURSO_HTTP_URL = ""
 
