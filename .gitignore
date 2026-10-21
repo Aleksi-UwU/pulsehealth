@@ -32,6 +32,11 @@ ENV/
 # Vercel
 .vercel/
 
+# Local tooling
+bin/
+temp_gh/
+*.zip
+
 # OS
 .DS_Store
 Thumbs.db
