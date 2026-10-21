@@ -195,6 +195,38 @@
           <div class="bio-val" id="bio-rhr">--</div>
           <div class="bio-sub">Cardiovascular health</div>
         </div>
+        <div class="bio-card">
+          <div class="bio-header">
+            <span class="bio-title">Cardio Fitness (VO2)</span>
+            <span class="bio-icon">🫁</span>
+          </div>
+          <div class="bio-val" id="bio-vo2">--</div>
+          <div class="bio-sub" id="bio-vo2-sub">Aerobic capacity</div>
+        </div>
+        <div class="bio-card">
+          <div class="bio-header">
+            <span class="bio-title">Zone 2 Fat Burn</span>
+            <span class="bio-icon">🔥</span>
+          </div>
+          <div class="bio-val" id="bio-zone2">0 m</div>
+          <div class="bio-sub">Fat oxidation target</div>
+        </div>
+        <div class="bio-card">
+          <div class="bio-header">
+            <span class="bio-title">Wrist Temp (Sleep)</span>
+            <span class="bio-icon">🌡️</span>
+          </div>
+          <div class="bio-val" id="bio-wrist-temp">0.0°</div>
+          <div class="bio-sub" id="bio-temp-sub">Baseline normal</div>
+        </div>
+        <div class="bio-card">
+          <div class="bio-header">
+            <span class="bio-title">Time in Daylight</span>
+            <span class="bio-icon">☀️</span>
+          </div>
+          <div class="bio-val" id="bio-daylight">0 m</div>
+          <div class="bio-sub">Circadian health</div>
+        </div>
       </div>
 
       <!-- Macros Card -->
@@ -720,6 +752,28 @@
         <div class="form-group">
           <label class="form-label">Weight (kg)</label>
           <input type="number" step="0.1" id="manual-weight" class="form-input" value="81.8" />
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+        <div class="form-group">
+          <label class="form-label">VO2 Max (mL/kg/min)</label>
+          <input type="number" step="0.1" id="manual-vo2" class="form-input" value="46.5" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Zone 2 Cardio (mins)</label>
+          <input type="number" id="manual-zone2" class="form-input" value="35" />
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+        <div class="form-group">
+          <label class="form-label">Wrist Temp Delta (°C)</label>
+          <input type="number" step="0.01" id="manual-wrist-temp" class="form-input" value="0.05" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Daylight (mins)</label>
+          <input type="number" id="manual-daylight" class="form-input" value="30" />
         </div>
       </div>
 

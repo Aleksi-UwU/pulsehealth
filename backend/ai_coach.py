@@ -253,6 +253,8 @@ def recommend_daily_workout_and_deficit(
        - Apple Watch HRV (Heart Rate Variability in ms) and Sleep hours determine central nervous system readiness.
        - High HRV (>50ms or above baseline) + 7+ hours sleep = High readiness. Prescribe progressive resistance training (hypertrophy / compound strength) or higher intensity training.
        - Low HRV (<35ms) or <6 hours sleep = Fatigued / Strained. Prescribe low-impact Zone 2 fat oxidation (incline walking, easy cycling) and mobility. NEVER overtrain a sleep-deprived user (it spikes cortisol, breaks down muscle, and causes hunger binges).
+       - Elevated Wrist Temperature (+0.5°C or higher above baseline during sleep) flags systemic strain, immune response, or overtraining; downgrade workout intensity.
+       - Zone 2 Cardio (60-70% HR max): Target 30-45 mins for optimal mitochondrial fat oxidation without spiking cortisol.
     2. Calorie Deficit & Energy Balance:
        - Basal Metabolic Rate (BMR) + Apple Watch Active Energy = Total Daily Energy Expenditure (TDEE).
        - Sustainable fat loss deficit is 400 - 600 kcal.
@@ -344,7 +346,11 @@ def recommend_daily_workout_and_deficit(
             "resting_heart_rate_bpm": health_metrics.get("resting_heart_rate", 0.0),
             "hrv_ms": health_metrics.get("hrv_ms", 0.0),
             "sleep_hours": health_metrics.get("sleep_hours", 0.0),
-            "sleep_deep_hours": health_metrics.get("sleep_deep_hours", 0.0)
+            "sleep_deep_hours": health_metrics.get("sleep_deep_hours", 0.0),
+            "vo2_max_cardio_fitness": health_metrics.get("vo2_max", 0.0),
+            "zone2_cardio_minutes": health_metrics.get("zone2_minutes", 0),
+            "wrist_temperature_delta_c": health_metrics.get("wrist_temp_c", 0.0),
+            "daylight_minutes": health_metrics.get("daylight_minutes", 0)
         },
         "nutrition_today": {
             "calories_consumed": round(c_in, 1),
@@ -375,6 +381,8 @@ def chat_with_coach(user_message: str, chat_history: List[Dict[str, str]], conte
     - Today's Calorie Intake: {context_summary.get('calories_in', 0)} kcal (Protein: {context_summary.get('protein_in', 0)}g)
     - Today's Apple Watch Active Burn: {context_summary.get('active_burn', 0)} kcal | Steps: {context_summary.get('steps', 0)}
     - Sleep Last Night: {context_summary.get('sleep_hours', 'N/A')} hrs | HRV: {context_summary.get('hrv', 'N/A')} ms
+    - VO2 Max: {context_summary.get('vo2_max', 'N/A')} | Zone 2 Cardio: {context_summary.get('zone2_mins', 0)} mins
+    - Wrist Temp Delta: {context_summary.get('wrist_temp', 0.0)}°C | Sunlight: {context_summary.get('daylight_mins', 0)} mins
     - Net Calorie Deficit Target: {context_summary.get('target_deficit', 500)} kcal
     
     Tone: Pragmatic, direct, science-backed, highly motivating, zero fluff. Answer in concise markdown.

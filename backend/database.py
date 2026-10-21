@@ -161,6 +161,10 @@ def init_db():
             sleep_hours REAL DEFAULT 0.0,
             sleep_deep_hours REAL DEFAULT 0.0,
             weight_kg REAL DEFAULT 0.0,
+            vo2_max REAL DEFAULT 0.0,
+            zone2_minutes INTEGER DEFAULT 0,
+            wrist_temp_c REAL DEFAULT 0.0,
+            daylight_minutes INTEGER DEFAULT 0,
             synced_at TEXT,
             source TEXT DEFAULT 'apple_health'
         )
@@ -221,6 +225,19 @@ def init_db():
     for q in queries:
         execute_mutation(q)
 
+    # Migrations for advanced Apple Watch biometric columns
+    new_cols = [
+        ("vo2_max", "REAL DEFAULT 0.0"),
+        ("zone2_minutes", "INTEGER DEFAULT 0"),
+        ("wrist_temp_c", "REAL DEFAULT 0.0"),
+        ("daylight_minutes", "INTEGER DEFAULT 0")
+    ]
+    for col_name, col_type in new_cols:
+        try:
+            execute_mutation(f"ALTER TABLE health_metrics ADD COLUMN {col_name} {col_type}")
+        except Exception:
+            pass  # Already exists
+
     # Seed default user profile if empty
     profiles = execute_query("SELECT COUNT(*) as cnt FROM user_profile WHERE id = 1")
     count = profiles[0].get("cnt", 0) if profiles else 0
@@ -275,8 +292,9 @@ def upsert_health_metrics(metrics: Dict[str, Any]) -> Dict[str, Any]:
     INSERT INTO health_metrics (
         date, steps, active_calories, resting_calories, total_calories,
         exercise_minutes, stand_hours, resting_heart_rate, hrv_ms,
-        sleep_hours, sleep_deep_hours, weight_kg, synced_at, source
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        sleep_hours, sleep_deep_hours, weight_kg, vo2_max, zone2_minutes,
+        wrist_temp_c, daylight_minutes, synced_at, source
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(date) DO UPDATE SET
         steps = excluded.steps,
         active_calories = excluded.active_calories,
@@ -289,6 +307,10 @@ def upsert_health_metrics(metrics: Dict[str, Any]) -> Dict[str, Any]:
         sleep_hours = CASE WHEN excluded.sleep_hours > 0 THEN excluded.sleep_hours ELSE health_metrics.sleep_hours END,
         sleep_deep_hours = CASE WHEN excluded.sleep_deep_hours > 0 THEN excluded.sleep_deep_hours ELSE health_metrics.sleep_deep_hours END,
         weight_kg = CASE WHEN excluded.weight_kg > 0 THEN excluded.weight_kg ELSE health_metrics.weight_kg END,
+        vo2_max = CASE WHEN excluded.vo2_max > 0 THEN excluded.vo2_max ELSE health_metrics.vo2_max END,
+        zone2_minutes = CASE WHEN excluded.zone2_minutes > 0 THEN excluded.zone2_minutes ELSE health_metrics.zone2_minutes END,
+        wrist_temp_c = CASE WHEN excluded.wrist_temp_c != 0.0 THEN excluded.wrist_temp_c ELSE health_metrics.wrist_temp_c END,
+        daylight_minutes = CASE WHEN excluded.daylight_minutes > 0 THEN excluded.daylight_minutes ELSE health_metrics.daylight_minutes END,
         synced_at = excluded.synced_at,
         source = excluded.source
     """, (
@@ -304,6 +326,10 @@ def upsert_health_metrics(metrics: Dict[str, Any]) -> Dict[str, Any]:
         float(metrics.get("sleep_hours", 0.0) or 0.0),
         float(metrics.get("sleep_deep_hours", 0.0) or 0.0),
         float(metrics.get("weight_kg", 0.0) or 0.0),
+        float(metrics.get("vo2_max", 0.0) or 0.0),
+        int(metrics.get("zone2_minutes", 0) or 0),
+        float(metrics.get("wrist_temp_c", 0.0) or 0.0),
+        int(metrics.get("daylight_minutes", 0) or 0),
         datetime.utcnow().isoformat(),
         metrics.get("source", "apple_health")
     ))

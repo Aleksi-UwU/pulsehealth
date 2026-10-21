@@ -68,6 +68,10 @@ class HealthSyncPayload(BaseModel):
     sleep_hours: Optional[float] = 0.0
     sleep_deep_hours: Optional[float] = 0.0
     weight_kg: Optional[float] = 0.0
+    vo2_max: Optional[float] = 0.0
+    zone2_minutes: Optional[int] = 0
+    wrist_temp_c: Optional[float] = 0.0
+    daylight_minutes: Optional[int] = 0
     source: Optional[str] = "apple_health"
 
 class FoodLogItem(BaseModel):
@@ -172,6 +176,12 @@ def get_dashboard_summary(target_date: Optional[str] = None):
         "date": d,
         "profile": profile,
         "health": health,
+        "advanced_biometrics": {
+            "vo2_max": round(health.get("vo2_max") or 0.0, 1),
+            "zone2_minutes": int(health.get("zone2_minutes") or 0),
+            "wrist_temp_c": round(health.get("wrist_temp_c") or 0.0, 2),
+            "daylight_minutes": int(health.get("daylight_minutes") or 0)
+        },
         "sleep": {
             "hours": sleep_hrs,
             "deep_hours": sleep_deep,
@@ -277,6 +287,12 @@ async def sync_apple_health_metrics(request: Request):
                 parsed_data["resting_calories"] = round(sum(float(s.get("qty", 0.0)) for s in samples), 1)
             elif m_name in ["body_mass", "weight", "weight_kg"]:
                 parsed_data["weight_kg"] = round(float(samples[-1].get("qty", 0.0)), 1)
+            elif m_name in ["vo2_max", "cardio_fitness"]:
+                parsed_data["vo2_max"] = round(float(samples[-1].get("qty", 0.0)), 1)
+            elif m_name in ["time_in_daylight", "daylight"]:
+                parsed_data["daylight_minutes"] = int(sum(float(s.get("qty", 0.0)) for s in samples))
+            elif m_name in ["apple_sleeping_wrist_temperature", "wrist_temperature", "wrist_temp"]:
+                parsed_data["wrist_temp_c"] = round(float(samples[-1].get("qty", 0.0)), 2)
     else:
         # Standard flat format (Apple Shortcuts or direct payload)
         field_mapping = {
@@ -290,7 +306,11 @@ async def sync_apple_health_metrics(request: Request):
             "hrv_ms": ["hrv_ms", "hrv", "heart_rate_variability_sdnn", "hrvMs"],
             "sleep_hours": ["sleep_hours", "sleep_analysis", "sleepHours"],
             "sleep_deep_hours": ["sleep_deep_hours", "sleepDeepHours"],
-            "weight_kg": ["weight_kg", "weight", "body_mass", "weightKg"]
+            "weight_kg": ["weight_kg", "weight", "body_mass", "weightKg"],
+            "vo2_max": ["vo2_max", "vo2Max", "vo2max", "cardio_fitness", "cardioFitness"],
+            "zone2_minutes": ["zone2_minutes", "zone2Minutes", "zone_2_minutes", "zone2"],
+            "wrist_temp_c": ["wrist_temp_c", "wrist_temperature", "wristTemperature", "wristTemp"],
+            "daylight_minutes": ["daylight_minutes", "time_in_daylight", "daylightMinutes", "sunlight_minutes"]
         }
         for target_field, candidates in field_mapping.items():
             for c in candidates:
@@ -463,6 +483,10 @@ def chat_with_ai_coach(req: CoachChatRequest):
         "steps": health.get("steps", 0),
         "sleep_hours": health.get("sleep_hours", "N/A"),
         "hrv": health.get("hrv_ms", "N/A"),
+        "vo2_max": health.get("vo2_max", "N/A"),
+        "zone2_mins": health.get("zone2_minutes", 0),
+        "wrist_temp": health.get("wrist_temp_c", 0.0),
+        "daylight_mins": health.get("daylight_minutes", 0),
         "target_deficit": profile.get("target_deficit_kcal", 500)
     }
 

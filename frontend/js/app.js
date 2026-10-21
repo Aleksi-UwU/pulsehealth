@@ -154,6 +154,31 @@ function renderDashboard(data) {
   document.getElementById("bio-sleep").textContent = h.sleep_hours ? `${h.sleep_hours.toFixed(1)} h` : "--";
   document.getElementById("bio-rhr").textContent = h.resting_heart_rate ? `${Math.round(h.resting_heart_rate)} bpm` : "--";
 
+  const vo2El = document.getElementById("bio-vo2");
+  if (vo2El) vo2El.textContent = h.vo2_max ? `${h.vo2_max.toFixed(1)}` : "--";
+  const vo2Sub = document.getElementById("bio-vo2-sub");
+  if (vo2Sub && h.vo2_max) {
+    vo2Sub.textContent = h.vo2_max >= 45 ? "High (Optimal)" : (h.vo2_max >= 38 ? "Good" : "Fair");
+  }
+
+  const zone2El = document.getElementById("bio-zone2");
+  if (zone2El) zone2El.textContent = `${h.zone2_minutes || 0} m`;
+
+  const wristTempEl = document.getElementById("bio-wrist-temp");
+  if (wristTempEl) {
+    const wt = h.wrist_temp_c || 0.0;
+    wristTempEl.textContent = `${wt > 0 ? "+" : ""}${wt.toFixed(2)}°`;
+    wristTempEl.style.color = Math.abs(wt) >= 0.5 ? "var(--neo-punch)" : "#fff";
+  }
+  const tempSub = document.getElementById("bio-temp-sub");
+  if (tempSub) {
+    const wt = h.wrist_temp_c || 0.0;
+    tempSub.textContent = wt >= 0.5 ? "⚠️ Strain / Fever" : (wt <= -0.5 ? "Low temp" : "Baseline normal");
+  }
+
+  const daylightEl = document.getElementById("bio-daylight");
+  if (daylightEl) daylightEl.textContent = `${h.daylight_minutes || 0} m`;
+
   // Hydration / Water
   const waterData = data.water || { total_ml: 0, target_ml: 3000, percentage: 0 };
   const waterVal = document.getElementById("water-intake-val");
@@ -719,6 +744,10 @@ async function submitManualHealthSync() {
   const hrv = parseFloat(document.getElementById("manual-hrv").value) || 0;
   const sleep = parseFloat(document.getElementById("manual-sleep").value) || 0;
   const weight = parseFloat(document.getElementById("manual-weight").value) || 0;
+  const vo2 = parseFloat(document.getElementById("manual-vo2").value) || 0;
+  const zone2 = parseInt(document.getElementById("manual-zone2").value) || 0;
+  const wristTemp = parseFloat(document.getElementById("manual-wrist-temp").value) || 0.0;
+  const daylight = parseInt(document.getElementById("manual-daylight").value) || 0;
 
   try {
     await fetch("/api/sync/health", {
@@ -734,6 +763,10 @@ async function submitManualHealthSync() {
         hrv_ms: hrv,
         sleep_hours: sleep,
         weight_kg: weight,
+        vo2_max: vo2,
+        zone2_minutes: zone2,
+        wrist_temp_c: wristTemp,
+        daylight_minutes: daylight,
         source: "manual_sync"
       })
     });
