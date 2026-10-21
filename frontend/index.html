@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>PulseHealth - AI Journey</title>
+  
+  <!-- PWA & Apple iOS Metadata -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="PulseHealth">
+  <meta name="theme-color" content="#08090d">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+
+  <!-- App Header -->
+  <header class="app-header">
+    <div class="brand">
+      <div class="brand-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-title">PulseHealth</div>
+        <div class="brand-subtitle">Apple Watch • AI Coach</div>
+      </div>
+    </div>
+    <div class="date-pill" id="header-date">Today</div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="container">
+
+    <!-- TAB 1: TODAY -->
+    <section id="tab-today" class="tab-content active">
+      <!-- Apple Activity Rings Hero -->
+      <div class="glass-card">
+        <div class="section-header">
+          <div class="section-title">
+            <span>Activity Rings</span>
+          </div>
+          <span class="section-badge">Apple Watch S10</span>
+        </div>
+        
+        <div class="rings-hero">
+          <div class="rings-svg-container" id="rings-svg">
+            <!-- Dynamic SVG concentric rings injected by app.js -->
+          </div>
+          <div class="rings-stats-list">
+            <div class="ring-stat-item">
+              <div class="ring-label-group">
+                <span class="ring-dot move"></span>
+                <span class="ring-stat-label">Move</span>
+              </div>
+              <div>
+                <span class="ring-stat-value" id="stat-move-val">0 / 600</span>
+                <span class="ring-stat-unit">kcal</span>
+              </div>
+            </div>
+            <div class="ring-stat-item">
+              <div class="ring-label-group">
+                <span class="ring-dot exercise"></span>
+                <span class="ring-stat-label">Exercise</span>
+              </div>
+              <div>
+                <span class="ring-stat-value" id="stat-exercise-val">0 / 30</span>
+                <span class="ring-stat-unit">min</span>
+              </div>
+            </div>
+            <div class="ring-stat-item">
+              <div class="ring-label-group">
+                <span class="ring-dot stand"></span>
+                <span class="ring-stat-label">Stand</span>
+              </div>
+              <div>
+                <span class="ring-stat-value" id="stat-stand-val">0 / 12</span>
+                <span class="ring-stat-unit">hrs</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Calorie Deficit Hero Card -->
+      <div class="glass-card deficit-card">
+        <div class="section-header">
+          <div class="section-title">
+            <span>🔥 Caloric Deficit Target</span>
+          </div>
+          <div style="font-size: 11px; font-weight: 700; color: var(--accent-cyan);">
+            <span id="hero-energy-in">0 in</span> • <span id="hero-energy-out">0 out</span>
+          </div>
+        </div>
+
+        <div class="deficit-row">
+          <div>
+            <div class="deficit-big-num" id="hero-deficit-num">0 kcal</div>
+            <div class="deficit-subtext" id="deficit-status-label">500 kcal Target Deficit</div>
+          </div>
+        </div>
+
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill" id="deficit-bar-fill" style="width: 0%;"></div>
+        </div>
+      </div>
+
+      <!-- Biometrics Mini Grid -->
+      <div class="bio-grid">
+        <div class="bio-card">
+          <div class="bio-header">
+            <span class="bio-title">Daily Steps</span>
+            <span class="bio-icon">👟</span>
+          </div>
+          <div class="bio-val" id="bio-steps">0</div>
+          <div class="bio-sub">Watch Pedometer</div>
+        </div>
+        <div class="bio-card">
+          <div class="bio-header">
+            <span class="bio-title">HRV (Recovery)</span>
+            <span class="bio-icon">⚡</span>
+          </div>
+          <div class="bio-val" id="bio-hrv">--</div>
+          <div class="bio-sub">Nervous Readiness</div>
+        </div>
+        <div class="bio-card">
+          <div class="bio-header">
+            <span class="bio-title">Sleep Duration</span>
+            <span class="bio-icon">🌙</span>
+          </div>
+          <div class="bio-val" id="bio-sleep">--</div>
+          <div class="bio-sub">Sleep tracking</div>
+        </div>
+        <div class="bio-card">
+          <div class="bio-header">
+            <span class="bio-title">Resting Heart Rate</span>
+            <span class="bio-icon">❤️</span>
+          </div>
+          <div class="bio-val" id="bio-rhr">--</div>
+          <div class="bio-sub">Cardiovascular health</div>
+        </div>
+      </div>
+
+      <!-- Macros Card -->
+      <div class="glass-card">
+        <div class="section-header">
+          <div class="section-title">
+            <span>Nutrition & Macros Consumed</span>
+          </div>
+          <button class="section-badge" style="background: none; border: 1px solid var(--border-glass); cursor: pointer;" onclick="switchTab('food')">
+            View Food ➔
+          </button>
+        </div>
+
+        <div class="macros-grid">
+          <div class="macro-box protein">
+            <div class="macro-name">Protein</div>
+            <div class="macro-val" id="today-protein-val">0g</div>
+            <div class="macro-target" id="today-protein-target">/ 140g</div>
+          </div>
+          <div class="macro-box carbs">
+            <div class="macro-name">Carbs</div>
+            <div class="macro-val" id="today-carbs-val">0g</div>
+            <div class="macro-target" id="today-carbs-target">/ 180g</div>
+          </div>
+          <div class="macro-box fat">
+            <div class="macro-name">Fat</div>
+            <div class="macro-val" id="today-fat-val">0g</div>
+            <div class="macro-target" id="today-fat-target">/ 55g</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Action Buttons -->
+      <div class="action-grid">
+        <button class="btn-action highlight" onclick="openModal('modal-ai-text')">
+          <span class="btn-action-icon">✨</span>
+          <span>AI Food Log</span>
+        </button>
+        <button class="btn-action" onclick="startBarcodeScanner()">
+          <span class="btn-action-icon">🏷️</span>
+          <span>Scan Barcode</span>
+        </button>
+        <button class="btn-action" onclick="openModal('modal-ai-photo')">
+          <span class="btn-action-icon">📸</span>
+          <span>Photo Plate</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- TAB 2: FOOD -->
+    <section id="tab-food" class="tab-content">
+      <div class="glass-card" style="margin-bottom: 14px;">
+        <div class="section-header">
+          <div class="section-title">
+            <span>Today's Intake</span>
+          </div>
+          <div style="font-size: 13px; font-weight: 700; color: var(--apple-move);" id="food-intake-total">
+            0 kcal
+          </div>
+        </div>
+        <div style="font-size: 12px; color: var(--text-dim);" id="food-remaining-total">
+          0 kcal remaining
+        </div>
+      </div>
+
+      <!-- Action buttons -->
+      <div class="action-grid">
+        <button class="btn-action highlight" onclick="openModal('modal-ai-text')">
+          <span class="btn-action-icon">💬</span>
+          <span>Describe Meal</span>
+        </button>
+        <button class="btn-action" onclick="openModal('modal-ai-photo')">
+          <span class="btn-action-icon">📸</span>
+          <span>Snap Photo</span>
+        </button>
+        <button class="btn-action" onclick="startBarcodeScanner()">
+          <span class="btn-action-icon">🏷️</span>
+          <span>Scan Barcode</span>
+        </button>
+      </div>
+
+      <!-- Meal Groups -->
+      <div class="meal-group">
+        <div class="meal-header">
+          <div class="meal-title">🍳 Breakfast</div>
+          <div class="meal-kcal" id="meal-kcal-breakfast">0 kcal</div>
+        </div>
+        <div id="meal-list-breakfast"></div>
+      </div>
+
+      <div class="meal-group">
+        <div class="meal-header">
+          <div class="meal-title">🥗 Lunch</div>
+          <div class="meal-kcal" id="meal-kcal-lunch">0 kcal</div>
+        </div>
+        <div id="meal-list-lunch"></div>
+      </div>
+
+      <div class="meal-group">
+        <div class="meal-header">
+          <div class="meal-title">🥩 Dinner</div>
+          <div class="meal-kcal" id="meal-kcal-dinner">0 kcal</div>
+        </div>
+        <div id="meal-list-dinner"></div>
+      </div>
+
+      <div class="meal-group">
+        <div class="meal-header">
+          <div class="meal-title">🍎 Snacks & Beverages</div>
+          <div class="meal-kcal" id="meal-kcal-snack">0 kcal</div>
+        </div>
+        <div id="meal-list-snack"></div>
+      </div>
+    </section>
+
+    <!-- TAB 3: COACH -->
+    <section id="tab-coach" class="tab-content">
+      <!-- Coach Header Profile -->
+      <div class="glass-card">
+        <div class="coach-header">
+          <div class="coach-avatar">⚡</div>
+          <div class="coach-info">
+            <h3>AI Exercise & Deficit Coach</h3>
+            <p>Powered by Gemini 3.8 Flash • Real-time Watch telemetry</p>
+          </div>
+        </div>
+
+        <!-- Dynamic Prescription content -->
+        <div id="coach-prescription-content">
+          <div style="text-align: center; padding: 20px;">
+            <span class="loading-spinner"></span> Loading coach data...
+          </div>
+        </div>
+      </div>
+
+      <!-- Interactive Coach Chat -->
+      <div class="glass-card" style="padding: 14px;">
+        <div class="section-title" style="margin-bottom: 10px;">
+          <span>💬 Ask Your Coach Anything</span>
+        </div>
+        <div class="chat-container">
+          <div class="chat-messages" id="coach-chat-messages">
+            <div class="chat-bubble coach">
+              Hey Harshil! I have your latest Apple Watch Series 10 recovery metrics and nutrition logs loaded. Ask me anything about today's workout, meal suggestions, or fat loss adjustments.
+            </div>
+          </div>
+          <div class="chat-input-row">
+            <input type="text" id="coach-chat-input" class="chat-input" placeholder="e.g. Can I have a protein smoothie tonight?" onkeydown="if(event.key==='Enter') sendCoachMessage()" />
+            <button class="chat-send-btn" id="coach-send-btn" onclick="sendCoachMessage()">➤</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: TRENDS -->
+    <section id="tab-trends" class="tab-content">
+      <div class="glass-card">
+        <div class="section-header">
+          <div class="section-title">
+            <span>📈 7-Day Net Caloric Deficit</span>
+          </div>
+          <span class="section-badge">Fat Loss Target</span>
+        </div>
+        <p style="font-size: 12px; color: var(--text-dim); margin-bottom: 12px;">
+          Bars represent daily net deficit (kcal). Cyan bars indicate you achieved the ≥500 kcal deficit sweet spot.
+        </p>
+        <canvas id="trends-canvas" width="340" height="180" style="width: 100%; border-radius: 12px; background: var(--bg-input);"></canvas>
+      </div>
+
+      <div class="glass-card">
+        <div class="section-title" style="margin-bottom: 10px;">
+          <span>⚖️ Weight Loss Trajectory</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0;">
+          <div>
+            <div style="font-size: 11px; color: var(--text-dim);">Current Weight</div>
+            <div style="font-size: 20px; font-weight: 800;" id="trend-cur-weight">82.0 kg</div>
+          </div>
+          <div style="font-size: 20px;">➔</div>
+          <div>
+            <div style="font-size: 11px; color: var(--text-dim);">Target Goal</div>
+            <div style="font-size: 20px; font-weight: 800; color: var(--accent-cyan);" id="trend-target-weight">72.0 kg</div>
+          </div>
+          <div>
+            <div style="font-size: 11px; color: var(--text-dim);">To Lose</div>
+            <div style="font-size: 20px; font-weight: 800; color: var(--apple-move);">10.0 kg</div>
+          </div>
+        </div>
+        <div style="font-size: 12px; color: var(--text-dim); margin-top: 8px;">
+          Consistent 500 kcal daily deficit = ~0.5 kg (1.1 lbs) pure fat loss per week. Estimated time to goal: ~20 weeks.
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 5: SYNC & SETTINGS -->
+    <section id="tab-sync" class="tab-content">
+      <!-- Apple Watch Sync Guide -->
+      <div class="glass-card">
+        <div class="section-header">
+          <div class="section-title">
+            <span>⌚ Apple Watch & iPhone Sync</span>
+          </div>
+          <span class="section-badge">Live Sync</span>
+        </div>
+
+        <p style="font-size: 13px; color: var(--text-dim); line-height: 1.5; margin-bottom: 14px;">
+          Open this app in Safari on your iPhone 16 Pro Max by scanning the QR code below. Then tap the Share button in Safari and select <strong>"Add to Home Screen"</strong> to run as a full-screen app.
+        </p>
+
+        <!-- QR Code container -->
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--bg-input); padding: 16px; border-radius: var(--radius-md); margin-bottom: 14px;">
+          <img id="qr-code-img" src="" alt="App QR Code" style="border-radius: 8px; width: 160px; height: 160px;" />
+          <div style="margin-top: 10px; font-size: 12px; color: var(--accent-cyan); font-weight: 700; word-break: break-all;" id="app-lan-url">
+            http://localhost:8000
+          </div>
+        </div>
+
+        <div style="background: var(--bg-input); padding: 12px; border-radius: var(--radius-md); font-size: 12px; line-height: 1.5; margin-bottom: 12px;">
+          <strong>Apple Shortcuts Webhook:</strong><br>
+          <code id="sync-webhook-url" style="color: var(--apple-exercise); word-break: break-all;">http://.../api/sync/health</code><br>
+          <span style="color: var(--text-muted);">Sync Token: <span id="sync-token-display">health-sync-token-12345</span></span>
+        </div>
+
+        <button class="btn-secondary" onclick="openModal('modal-manual-sync')">
+          ✍️ Quick Manual Health Sync (Test)
+        </button>
+      </div>
+
+      <!-- User Profile Settings -->
+      <div class="glass-card">
+        <div class="section-title" style="margin-bottom: 14px;">
+          <span>⚙️ Weight Loss & Body Settings</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Your Name</label>
+          <input type="text" id="prof-name" class="form-input" />
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+          <div class="form-group">
+            <label class="form-label">Age</label>
+            <input type="number" id="prof-age" class="form-input" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Gender</label>
+            <select id="prof-gender" class="form-select">
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+          <div class="form-group">
+            <label class="form-label">Height (cm)</label>
+            <input type="number" id="prof-height" class="form-input" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Current (kg)</label>
+            <input type="number" step="0.1" id="prof-weight" class="form-input" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Target (kg)</label>
+            <input type="number" step="0.1" id="prof-target-weight" class="form-input" />
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+          <div class="form-group">
+            <label class="form-label">Calorie Goal</label>
+            <input type="number" id="prof-calorie-target" class="form-input" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Deficit Goal</label>
+            <input type="number" id="prof-deficit-target" class="form-input" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Protein (g)</label>
+            <input type="number" id="prof-protein-target" class="form-input" />
+          </div>
+        </div>
+
+        <button class="btn-primary" onclick="saveProfileSettings()">
+          Save Settings
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Bottom Navigation Bar -->
+  <nav class="nav-bar">
+    <button class="nav-item active" data-tab="today">
+      <span class="nav-item-icon">⭕</span>
+      <span>Today</span>
+    </button>
+    <button class="nav-item" data-tab="food">
+      <span class="nav-item-icon">🥗</span>
+      <span>Food</span>
+    </button>
+    <button class="nav-item" data-tab="coach">
+      <span class="nav-item-icon">⚡</span>
+      <span>Coach</span>
+    </button>
+    <button class="nav-item" data-tab="trends">
+      <span class="nav-item-icon">📊</span>
+      <span>Trends</span>
+    </button>
+    <button class="nav-item" data-tab="sync">
+      <span class="nav-item-icon">⌚</span>
+      <span>Sync</span>
+    </button>
+  </nav>
+
+  <!-- MODAL: AI TEXT FOOD LOG -->
+  <div class="modal-overlay" id="modal-ai-text">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-header">
+        <div class="modal-title">✨ AI Natural Language Food Log</div>
+        <button class="btn-close" onclick="closeModal('modal-ai-text')">✕</button>
+      </div>
+      <p style="font-size: 12px; color: var(--text-dim); margin-bottom: 12px;">
+        Type or voice-dictate whatever you ate. Our AI will automatically estimate calories, portions, protein, carbs, and fats.
+      </p>
+      <div class="form-group">
+        <label class="form-label">Meal Type</label>
+        <select id="ai-meal-type" class="form-select">
+          <option value="breakfast">Breakfast</option>
+          <option value="lunch" selected>Lunch</option>
+          <option value="dinner">Dinner</option>
+          <option value="snack">Snack</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">What did you eat?</label>
+        <textarea id="ai-food-text" class="form-textarea" rows="3" placeholder="e.g. 2 scrambled eggs with 1 slice whole wheat toast, 1 tbsp peanut butter, and a black coffee"></textarea>
+      </div>
+      <button class="btn-primary" id="btn-ai-text-submit" onclick="submitAITextFood()">
+        Log with AI
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL: AI PHOTO FOOD LOG -->
+  <div class="modal-overlay" id="modal-ai-photo">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-header">
+        <div class="modal-title">📸 AI Plate Photo Scanner</div>
+        <button class="btn-close" onclick="closeModal('modal-ai-photo')">✕</button>
+      </div>
+      <p style="font-size: 12px; color: var(--text-dim); margin-bottom: 12px;">
+        Take a picture of your meal plate or select a photo. Gemini Vision will identify items and estimate nutrition for weight loss.
+      </p>
+      <div class="form-group">
+        <label class="form-label">Meal Type</label>
+        <select id="photo-meal-type" class="form-select">
+          <option value="breakfast">Breakfast</option>
+          <option value="lunch" selected>Lunch</option>
+          <option value="dinner">Dinner</option>
+          <option value="snack">Snack</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Take Photo / Upload</label>
+        <input type="file" id="ai-food-file" accept="image/*" capture="environment" class="form-input" />
+      </div>
+      <img id="photo-preview" src="" alt="Preview" style="display: none; width: 100%; height: 180px; object-fit: cover; border-radius: var(--radius-md); margin-bottom: 12px;" />
+      <button class="btn-primary" id="btn-ai-photo-submit" onclick="submitAIPhotoFood()">
+        Analyze & Log Meal
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL: BARCODE SCANNER -->
+  <div class="modal-overlay" id="modal-barcode">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-header">
+        <div class="modal-title">🏷️ Barcode Scanner</div>
+        <button class="btn-close" onclick="closeModal('modal-barcode')">✕</button>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Log to Meal</label>
+        <select id="barcode-meal-type" class="form-select">
+          <option value="breakfast">Breakfast</option>
+          <option value="lunch">Lunch</option>
+          <option value="dinner">Dinner</option>
+          <option value="snack" selected>Snack</option>
+        </select>
+      </div>
+
+      <!-- Live Camera Viewfinder -->
+      <div class="scanner-container">
+        <video id="scanner-video" playsinline muted autoplay></video>
+        <div class="scanner-overlay">
+          <div class="scanner-reticle">
+            <div class="scanner-laser"></div>
+          </div>
+        </div>
+      </div>
+      <div id="barcode-status" style="font-size: 12px; color: var(--accent-cyan); text-align: center; margin-bottom: 12px; font-weight: 600;">
+        Point camera at food packaging
+      </div>
+
+      <!-- Manual barcode input fallback -->
+      <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+        <input type="text" id="manual-barcode-input" class="form-input" placeholder="Or enter barcode digits..." />
+        <button class="btn-primary" style="width: auto; padding: 0 16px;" onclick="lookupBarcode()">Lookup</button>
+      </div>
+
+      <div id="barcode-result-container"></div>
+    </div>
+  </div>
+
+  <!-- MODAL: MANUAL HEALTH SYNC (FOR TESTING / DIRECT INPUT) -->
+  <div class="modal-overlay" id="modal-manual-sync">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-header">
+        <div class="modal-title">⌚ Manual Apple Health Sync</div>
+        <button class="btn-close" onclick="closeModal('modal-manual-sync')">✕</button>
+      </div>
+      <p style="font-size: 12px; color: var(--text-dim); margin-bottom: 12px;">
+        Test your dashboard immediately by entering today's Apple Watch metrics or wait for the automatic Shortcut sync.
+      </p>
+
+      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+        <div class="form-group">
+          <label class="form-label">Active Calories (Move)</label>
+          <input type="number" id="manual-active-cal" class="form-input" value="550" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Steps</label>
+          <input type="number" id="manual-steps" class="form-input" value="8400" />
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+        <div class="form-group">
+          <label class="form-label">Exercise Mins</label>
+          <input type="number" id="manual-exercise-mins" class="form-input" value="45" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Stand Hours</label>
+          <input type="number" id="manual-stand-hrs" class="form-input" value="11" />
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+        <div class="form-group">
+          <label class="form-label">HRV (ms)</label>
+          <input type="number" id="manual-hrv" class="form-input" value="56" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Resting HR (bpm)</label>
+          <input type="number" id="manual-rhr" class="form-input" value="58" />
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+        <div class="form-group">
+          <label class="form-label">Sleep Hours</label>
+          <input type="number" step="0.1" id="manual-sleep" class="form-input" value="7.5" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Weight (kg)</label>
+          <input type="number" step="0.1" id="manual-weight" class="form-input" value="81.8" />
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="submitManualHealthSync()">
+        Sync Metrics Now
+      </button>
+    </div>
+  </div>
+
+  <!-- Core JavaScript -->
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
