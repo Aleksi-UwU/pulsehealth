@@ -75,8 +75,7 @@ Using the native **Apple Shortcuts** app on your iPhone, we query today's metric
 
 ### Step 3: Send POST to Your Webhook
 - Add action: **Get Contents of URL**
-  - URL: `http://<YOUR_LOCAL_IP>:8000/api/sync/health`
-    *(Find your exact IP on the Sync tab inside the app)*
+  - URL: `https://pulsehealth-jade.vercel.app/api/sync/health`
   - Method: **POST**
   - Headers:
     - `Content-Type`: `application/json`
