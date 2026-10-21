@@ -197,7 +197,8 @@ def sync_apple_health_metrics(payload: HealthSyncPayload):
     Works with Apple Shortcuts or Health Auto Export app.
     """
     profile = db.get_profile()
-    if payload.token and profile.get("sync_token") and payload.token != profile.get("sync_token"):
+    expected_token = profile.get("sync_token")
+    if expected_token and payload.token != expected_token:
         raise HTTPException(status_code=401, detail="Invalid sync token")
 
     data = payload.dict(exclude_unset=True)

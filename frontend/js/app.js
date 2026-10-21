@@ -451,24 +451,22 @@ async function submitAITextFood() {
     const json = await res.json();
     const items = json.result.items || [];
 
-    // Automatically log all parsed items
-    for (const item of items) {
-      await fetch("/api/food/log", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          food_name: item.food_name,
-          meal_type: mealType,
-          calories: item.calories,
-          protein_g: item.protein_g,
-          carbs_g: item.carbs_g,
-          fat_g: item.fat_g,
-          fiber_g: item.fiber_g,
-          serving: item.serving,
-          source: "ai_text"
-        })
-      });
-    }
+    // Automatically log all parsed items in parallel
+    await Promise.all(items.map((item) => fetch("/api/food/log", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        food_name: item.food_name,
+        meal_type: mealType,
+        calories: item.calories,
+        protein_g: item.protein_g,
+        carbs_g: item.carbs_g,
+        fat_g: item.fat_g,
+        fiber_g: item.fiber_g,
+        serving: item.serving,
+        source: "ai_text"
+      })
+    })));
 
     closeModal("modal-ai-text");
     document.getElementById("ai-food-text").value = "";
@@ -506,23 +504,22 @@ async function submitAIPhotoFood() {
     const json = await res.json();
     const items = json.result.items || [];
 
-    for (const item of items) {
-      await fetch("/api/food/log", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          food_name: item.food_name,
-          meal_type: mealType,
-          calories: item.calories,
-          protein_g: item.protein_g,
-          carbs_g: item.carbs_g,
-          fat_g: item.fat_g,
-          fiber_g: item.fiber_g,
-          serving: item.serving,
-          source: "ai_photo"
-        })
-      });
-    }
+    // Log all detected items in parallel
+    await Promise.all(items.map((item) => fetch("/api/food/log", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        food_name: item.food_name,
+        meal_type: mealType,
+        calories: item.calories,
+        protein_g: item.protein_g,
+        carbs_g: item.carbs_g,
+        fat_g: item.fat_g,
+        fiber_g: item.fiber_g,
+        serving: item.serving,
+        source: "ai_photo"
+      })
+    })));
 
     closeModal("modal-ai-photo");
     fileInput.value = "";
@@ -611,6 +608,7 @@ async function lookupBarcode(barcode) {
     if (!res.ok) throw new Error("Product not found");
     const json = await res.json();
     const prod = json.product;
+    window.currentScannedItem = prod;
 
     resContainer.innerHTML = `
       <div style="background: var(--bg-input); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-glass); margin-top: 10px;">
@@ -622,7 +620,7 @@ async function lookupBarcode(barcode) {
           <span style="color: var(--macro-carbs);">${prod.carbs_g}g C</span> • 
           <span style="color: var(--macro-fat);">${prod.fat_g}g F</span>
         </div>
-        <button class="btn-primary" style="margin-top: 12px; padding: 10px;" onclick="logScannedBarcodeItem('${escapeHtml(prod.food_name)}', ${prod.calories}, ${prod.protein_g}, ${prod.carbs_g}, ${prod.fat_g}, ${prod.fiber_g}, '${escapeHtml(prod.serving)}', '${escapeHtml(prod.barcode)}')">
+        <button class="btn-primary" style="margin-top: 12px; padding: 10px;" onclick="logScannedBarcodeItem()">
           ✓ Add to Food Log
         </button>
       </div>
@@ -636,26 +634,29 @@ async function lookupBarcode(barcode) {
   }
 }
 
-async function logScannedBarcodeItem(name, kcal, p, c, f, fib, serv, barcode) {
+async function logScannedBarcodeItem() {
+  const prod = window.currentScannedItem;
+  if (!prod) return;
   const mealType = document.getElementById("barcode-meal-type").value || "snack";
   try {
     await fetch("/api/food/log", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        food_name: name,
+        food_name: prod.food_name,
         meal_type: mealType,
-        calories: kcal,
-        protein_g: p,
-        carbs_g: c,
-        fat_g: f,
-        fiber_g: fib,
-        serving: serv,
+        calories: prod.calories,
+        protein_g: prod.protein_g,
+        carbs_g: prod.carbs_g,
+        fat_g: prod.fat_g,
+        fiber_g: prod.fiber_g,
+        serving: prod.serving,
         source: "barcode",
-        barcode: barcode
+        barcode: prod.barcode
       })
     });
     closeModal("modal-barcode");
+    window.currentScannedItem = null;
     await loadDashboard();
   } catch (err) {
     alert("Error saving food: " + err.message);
