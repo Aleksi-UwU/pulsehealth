@@ -785,6 +785,22 @@ function renderTrendsCharts(history) {
   ctx.stroke();
 }
 
+// --- Instant Apple Watch Trigger ---
+function triggerInstantWatchSync() {
+  if (navigator.vibrate) navigator.vibrate(25);
+  const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+  if (isIOS) {
+    // Invoke native iOS Shortcuts URL scheme to pull Watch S10 data immediately
+    window.location.href = "shortcuts://run-shortcut?name=Sync%20PulseHealth";
+  } else {
+    // On non-iOS, prompt quick manual sync modal
+    openModal("modal-manual-sync");
+  }
+  // Fast double-poll to render metrics as soon as Shortcut completes
+  setTimeout(loadDashboard, 1500);
+  setTimeout(loadDashboard, 4000);
+}
+
 // --- Photo Preview & Interaction Feedback ---
 function setupEventListeners() {
   const photoInput = document.getElementById("ai-food-file");
@@ -798,6 +814,16 @@ function setupEventListeners() {
       }
     });
   }
+
+  // Autonomous live sync when user returns to app/focus
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+      loadDashboard();
+    }
+  });
+  window.addEventListener("focus", () => {
+    loadDashboard();
+  });
 
   // Tactile haptic feedback for buttons & controls
   document.addEventListener("click", (e) => {

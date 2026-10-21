@@ -84,16 +84,45 @@ Using the native **Apple Shortcuts** app on your iPhone, we query today's metric
 
 ---
 
-## ⚡ Option 2: Automatic Background Trigger
-To sync without touching your phone:
-1. In the **Shortcuts** app, tap the **Automation** tab at the bottom.
+## ⚡ 100% Autonomous & Instantaneous Background Sync
+
+To make your Apple Watch Series 10 sync **autonomously and instantaneously without touching your phone or pressing any buttons**, set up native **iOS Personal Automations**:
+
+### Trigger 1: Instant Sync on App Open (Zero-Wait Launch)
+1. In the **Shortcuts** app on your iPhone 16 Pro Max, tap the **Automation** tab (bottom center).
 2. Tap **`+` (New Automation)**.
-3. Choose either:
-   - **Time of Day**: Every day at **8:30 PM** (or your preferred evening time).
-   - **Workout Ends**: When any workout finishes on your Apple Watch.
-4. Select **Run Immediately** (toggle off "Ask Before Running").
-5. Action: Select your **Sync PulseHealth** shortcut.
-Now, every day your Apple Watch Series 10 stats update your PulseHealth dashboard automatically in the background!
+3. Scroll down and tap **App**.
+4. Choose **App**: Select **PulseHealth** (or **Safari**).
+5. Choose: **Is Opened**.
+6. Select **Run Immediately** (ensure "Notify When Run" is turned OFF).
+7. Action: Select **Run Shortcut** ➔ choose **Sync PulseHealth**.
+*Result:* The exact microsecond you tap the PulseHealth icon on your iPhone home screen, iOS fetches your latest Apple Watch stats in the background.
+
+### Trigger 2: Instant Sync on Workout Complete (Apple Watch S10)
+1. In **Shortcuts** ➔ **Automation** ➔ tap **`+`**.
+2. Select **Workout**.
+3. Choose: **Any Workout Ends**.
+4. Select **Run Immediately**.
+5. Action: Select **Run Shortcut** ➔ choose **Sync PulseHealth**.
+*Result:* The second you tap "End Workout" on your Apple Watch Series 10, your active calories, exercise minutes, and heart rate are pushed to your dashboard immediately.
+
+### Trigger 3: Instant Morning Recovery Sync (Waking Up)
+1. In **Shortcuts** ➔ **Automation** ➔ tap **`+`**.
+2. Select **Sleep** ➔ **Waking Up** (or "When Bedtime Ends").
+3. Select **Run Immediately**.
+4. Action: Select **Run Shortcut** ➔ choose **Sync PulseHealth**.
+*Result:* As soon as you wake up, your overnight Sleep Hours, Deep Sleep, and Heart Rate Variability (HRV) sync so your AI Coach can calculate your daily readiness score before you get out of bed.
+
+---
+
+## 🛰️ Alternative: Health Auto Export App (Continuous Daemon Sync)
+If you prefer 24/7 background telemetry streaming without Shortcuts:
+1. Install **Health Auto Export** from the App Store on iPhone.
+2. Tap **Automations** ➔ **Add REST API Webhook**.
+3. URL: `https://pulsehealth-jade.vercel.app/api/sync/health`
+4. Headers: `Authorization: Bearer health-sync-token-12345`
+5. Select sync cadence: **Background Delivery (Instant on New Data)**.
+6. The PulseHealth server automatically detects and parses the Health Auto Export payload structure.
 
 ---
 

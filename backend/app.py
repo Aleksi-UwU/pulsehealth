@@ -190,25 +190,105 @@ def get_dashboard_summary(target_date: Optional[str] = None):
         "ai_recommendation": ai_rec
     }
 
-@app.post("/api/sync/health")
-def sync_apple_health_metrics(payload: HealthSyncPayload):
+@app.api_route("/api/sync/health", methods=["GET", "POST"])
+async def sync_apple_health_metrics(request: Request):
     """
-    Webhook endpoint to ingest Apple Watch Series 10 / Apple Health data.
-    Works with Apple Shortcuts or Health Auto Export app.
+    Universal Autonomous Webhook for Apple Watch Series 10 / Apple Health.
+    Supports:
+    1. Native Apple Shortcuts (JSON body or query params)
+    2. Health Auto Export app (nested data.metrics array)
+    3. Direct URL Webhook triggers
     """
+    # 1. Extract token from header, query param, or body
+    auth_header = request.headers.get("Authorization", "")
+    token = None
+    if auth_header.startswith("Bearer "):
+        token = auth_header.replace("Bearer ", "").strip()
+    elif auth_header:
+        token = auth_header.strip()
+    
+    if not token:
+        token = request.query_params.get("token")
+
+    raw_payload = {}
+    if request.method == "POST":
+        try:
+            raw_payload = await request.json()
+        except Exception:
+            raw_payload = {}
+        if not token:
+            token = raw_payload.get("token")
+    else:
+        raw_payload = dict(request.query_params)
+
+    # 2. Verify token
     profile = db.get_profile()
     expected_token = profile.get("sync_token")
-    if expected_token and payload.token != expected_token:
+    if expected_token and token != expected_token:
         raise HTTPException(status_code=401, detail="Invalid sync token")
 
-    data = payload.dict(exclude_unset=True)
-    if "token" in data:
-        del data["token"]
+    parsed_data: Dict[str, Any] = {
+        "date": raw_payload.get("date") or date.today().isoformat(),
+        "source": "apple_health"
+    }
 
-    saved = db.upsert_health_metrics(data)
+    # 3. Check for Health Auto Export format (data.metrics)
+    if "data" in raw_payload and isinstance(raw_payload["data"], dict) and "metrics" in raw_payload["data"]:
+        metrics_list = raw_payload["data"].get("metrics", [])
+        for m in metrics_list:
+            m_name = m.get("name", "").lower()
+            samples = m.get("data", [])
+            if not samples:
+                continue
+            if m_name in ["active_energy", "active_calories"]:
+                parsed_data["active_calories"] = round(sum(float(s.get("qty", 0.0)) for s in samples), 1)
+            elif m_name in ["step_count", "steps"]:
+                parsed_data["steps"] = int(sum(float(s.get("qty", 0)) for s in samples))
+            elif m_name in ["apple_exercise_time", "exercise_minutes"]:
+                parsed_data["exercise_minutes"] = int(sum(float(s.get("qty", 0)) for s in samples))
+            elif m_name in ["apple_stand_time", "stand_hours"]:
+                parsed_data["stand_hours"] = int(sum(float(s.get("qty", 0)) for s in samples))
+            elif m_name in ["resting_heart_rate"]:
+                parsed_data["resting_heart_rate"] = round(float(samples[-1].get("qty", 0.0)), 1)
+            elif m_name in ["heart_rate_variability_sdnn", "hrv", "hrv_ms"]:
+                parsed_data["hrv_ms"] = round(float(samples[-1].get("qty", 0.0)), 1)
+            elif m_name in ["sleep_analysis", "sleep_hours"]:
+                parsed_data["sleep_hours"] = round(sum(float(s.get("qty", 0.0)) for s in samples), 1)
+            elif m_name in ["basal_energy_burned", "resting_calories"]:
+                parsed_data["resting_calories"] = round(sum(float(s.get("qty", 0.0)) for s in samples), 1)
+            elif m_name in ["body_mass", "weight", "weight_kg"]:
+                parsed_data["weight_kg"] = round(float(samples[-1].get("qty", 0.0)), 1)
+    else:
+        # Standard flat format (Apple Shortcuts or direct payload)
+        field_mapping = {
+            "steps": ["steps", "step_count"],
+            "active_calories": ["active_calories", "active_energy", "activeCalories"],
+            "resting_calories": ["resting_calories", "basal_energy_burned", "restingCalories"],
+            "total_calories": ["total_calories", "totalCalories"],
+            "exercise_minutes": ["exercise_minutes", "apple_exercise_time", "exerciseMinutes"],
+            "stand_hours": ["stand_hours", "apple_stand_time", "standHours"],
+            "resting_heart_rate": ["resting_heart_rate", "restingHeartRate", "rhr"],
+            "hrv_ms": ["hrv_ms", "hrv", "heart_rate_variability_sdnn", "hrvMs"],
+            "sleep_hours": ["sleep_hours", "sleep_analysis", "sleepHours"],
+            "sleep_deep_hours": ["sleep_deep_hours", "sleepDeepHours"],
+            "weight_kg": ["weight_kg", "weight", "body_mass", "weightKg"]
+        }
+        for target_field, candidates in field_mapping.items():
+            for c in candidates:
+                if c in raw_payload and raw_payload[c] is not None:
+                    try:
+                        if target_field in ["steps", "exercise_minutes", "stand_hours"]:
+                            parsed_data[target_field] = int(float(raw_payload[c]))
+                        else:
+                            parsed_data[target_field] = round(float(raw_payload[c]), 1)
+                    except (ValueError, TypeError):
+                        pass
+                    break
+
+    saved = db.upsert_health_metrics(parsed_data)
     return {
         "status": "success",
-        "message": "Apple Health data synced successfully",
+        "message": "Health telemetry synced instantaneously",
         "data": saved
     }
 
