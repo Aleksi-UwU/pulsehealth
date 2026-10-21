@@ -140,6 +140,15 @@ function renderDashboard(data) {
   document.getElementById("bio-sleep").textContent = h.sleep_hours ? `${h.sleep_hours.toFixed(1)} h` : "--";
   document.getElementById("bio-rhr").textContent = h.resting_heart_rate ? `${Math.round(h.resting_heart_rate)} bpm` : "--";
 
+  // Hydration / Water
+  const waterData = data.water || { total_ml: 0, target_ml: 3000, percentage: 0 };
+  const waterVal = document.getElementById("water-intake-val");
+  const waterTarget = document.getElementById("water-target-val");
+  const waterBar = document.getElementById("water-bar-fill");
+  if (waterVal) waterVal.textContent = waterData.total_ml;
+  if (waterTarget) waterTarget.textContent = waterData.target_ml;
+  if (waterBar) waterBar.style.width = `${waterData.percentage}%`;
+
   // Macros on Today tab
   const pTarget = prof.daily_protein_target || 140;
   const cTarget = prof.daily_carb_target || 180;
@@ -151,6 +160,10 @@ function renderDashboard(data) {
   document.getElementById("today-carbs-target").textContent = `/ ${cTarget}g`;
   document.getElementById("today-fat-val").textContent = `${Math.round(f.fat_g || 0)}g`;
   document.getElementById("today-fat-target").textContent = `/ ${fTarget}g`;
+  const fiberVal = document.getElementById("today-fiber-val");
+  const fiberTarget = document.getElementById("today-fiber-target");
+  if (fiberVal) fiberVal.textContent = `${Math.round(f.fiber_g || 0)}g`;
+  if (fiberTarget) fiberTarget.textContent = `/ 35g`;
 
   // Header date
   const now = new Date();
@@ -386,6 +399,24 @@ async function deleteFoodItem(id) {
     await loadDashboard();
   } catch (err) {
     alert("Error deleting item: " + err.message);
+  }
+}
+
+// --- Water Intake Handler ---
+async function logWater(amountMl) {
+  if (navigator.vibrate) navigator.vibrate(20);
+  try {
+    const res = await fetch("/api/water/log", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ amount_ml: amountMl })
+    });
+    const json = await res.json();
+    if (json.status === "success") {
+      await loadDashboard();
+    }
+  } catch (err) {
+    console.error("Failed to log water:", err);
   }
 }
 
@@ -753,7 +784,7 @@ function renderTrendsCharts(history) {
   ctx.stroke();
 }
 
-// --- Photo Preview Handler ---
+// --- Photo Preview & Interaction Feedback ---
 function setupEventListeners() {
   const photoInput = document.getElementById("ai-food-file");
   if (photoInput) {
@@ -766,6 +797,17 @@ function setupEventListeners() {
       }
     });
   }
+
+  // Tactile haptic feedback for buttons & controls
+  document.addEventListener("click", (e) => {
+    if (e.target.closest("button, .nav-item, .btn-action, .btn-water, .section-badge")) {
+      if (navigator.vibrate) {
+        try {
+          navigator.vibrate(15);
+        } catch (_) {}
+      }
+    }
+  });
 }
 
 // Utility

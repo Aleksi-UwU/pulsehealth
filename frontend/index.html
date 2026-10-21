@@ -110,6 +110,26 @@
         </div>
       </div>
 
+      <!-- Hydration / Water Tracker Card -->
+      <div class="glass-card water-card">
+        <div class="section-header">
+          <div class="section-title">
+            <span>💧 Daily Hydration</span>
+          </div>
+          <div style="font-size: 13px; font-weight: 900; color: var(--neo-cyan);">
+            <span id="water-intake-val">0</span> / <span id="water-target-val">3000</span> ml
+          </div>
+        </div>
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill" id="water-bar-fill" style="width: 0%; background: var(--neo-cyan);"></div>
+        </div>
+        <div class="water-btn-grid">
+          <button class="btn-water" onclick="logWater(250)">+250 ml</button>
+          <button class="btn-water" onclick="logWater(500)">+500 ml</button>
+          <button class="btn-water" onclick="logWater(-250)">-250 ml</button>
+        </div>
+      </div>
+
       <!-- Biometrics Mini Grid -->
       <div class="bio-grid">
         <div class="bio-card">
@@ -152,7 +172,7 @@
           <div class="section-title">
             <span>Nutrition & Macros Consumed</span>
           </div>
-          <button class="section-badge" style="background: none; border: 1px solid var(--border-glass); cursor: pointer;" onclick="switchTab('food')">
+          <button class="section-badge" style="cursor: pointer; background: var(--neo-cyan); color: #000;" onclick="switchTab('food')">
             View Food ➔
           </button>
         </div>
@@ -172,6 +192,11 @@
             <div class="macro-name">Fat</div>
             <div class="macro-val" id="today-fat-val">0g</div>
             <div class="macro-target" id="today-fat-target">/ 55g</div>
+          </div>
+          <div class="macro-box fiber">
+            <div class="macro-name">Fiber</div>
+            <div class="macro-val" id="today-fiber-val">0g</div>
+            <div class="macro-target" id="today-fiber-target">/ 35g</div>
           </div>
         </div>
       </div>

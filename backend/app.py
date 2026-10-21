@@ -91,6 +91,10 @@ class CoachChatRequest(BaseModel):
     message: str
     history: Optional[List[Dict[str, str]]] = []
 
+class WaterLogRequest(BaseModel):
+    amount_ml: int
+    date: Optional[str] = None
+
 # --- API Endpoints ---
 
 @app.get("/api/profile")
@@ -151,11 +155,17 @@ def get_dashboard_summary(target_date: Optional[str] = None):
     # Calorie budget remaining
     daily_budget = profile.get("daily_calorie_target", 1850)
     calories_remaining = daily_budget - calories_in
+    water_ml = db.get_water_intake(d)
 
     return {
         "date": d,
         "profile": profile,
         "health": health,
+        "water": {
+            "total_ml": water_ml,
+            "target_ml": 3000,
+            "percentage": min(round((water_ml / 3000) * 100), 100)
+        },
         "food": {
             "items": food_items,
             "totals": {
@@ -213,6 +223,12 @@ def remove_food_item(log_id: int):
     if not success:
         raise HTTPException(status_code=404, detail="Food log not found")
     return {"status": "success", "deleted_id": log_id}
+
+@app.post("/api/water/log")
+def log_water_intake(req: WaterLogRequest):
+    d = req.date or date.today().isoformat()
+    total = db.add_water_intake(d, req.amount_ml)
+    return {"status": "success", "total_ml": total, "target_ml": 3000}
 
 @app.post("/api/food/parse-text")
 def parse_food_from_text(req: TextParseRequest):
