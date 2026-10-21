@@ -5,21 +5,21 @@
 
 :root {
   /* Neo-Brutalist Saturated Neon Palette */
-  --neo-lime: #CCFF00;
-  --neo-punch: #FF2A6D;
-  --neo-cyan: #05D9E8;
-  --neo-orange: #FF7A00;
-  --neo-purple: #B5179E;
-  --neo-emerald: #00F5D4;
-  --neo-yellow: #FFD600;
+  --neo-lime: #D4FF00;
+  --neo-punch: #FF3377;
+  --neo-cyan: #00F0FF;
+  --neo-orange: #FF8800;
+  --neo-purple: #B366FF;
+  --neo-emerald: #00FFCC;
+  --neo-yellow: #FFEA00;
 
-  /* Surfaces & Borders */
-  --bg-dark: #0a0b10;
-  --bg-card: #141724;
-  --bg-card-elevated: #1a1e2e;
-  --bg-input: #0e1019;
+  /* Surfaces & Borders (Brighter, Elevated Midnight Slate) */
+  --bg-dark: #121522;
+  --bg-card: #1c2236;
+  --bg-card-elevated: #242c44;
+  --bg-input: #15192a;
   
-  --border-thick: 2.5px solid #2e3348;
+  --border-thick: 2.5px solid #3d4668;
   --border-stark: 2.5px solid #ffffff;
   --border-black: 2.5px solid #000000;
   --border-accent: 2.5px solid var(--neo-lime);
@@ -32,10 +32,10 @@
   --shadow-block-sm: 2px 2px 0px #000000;
   --shadow-pressed: 1px 1px 0px #000000;
 
-  /* Typography */
+  /* Typography (High Clarity & Luminous Contrast) */
   --text-main: #FFFFFF;
-  --text-dim: #9FA7BE;
-  --text-muted: #626A82;
+  --text-dim: #C5CDE3;
+  --text-muted: #939EBC;
   --text-inverse: #000000;
 
   --radius-lg: 16px;
@@ -72,7 +72,7 @@ body {
   position: sticky;
   top: 0;
   z-index: 40;
-  background: #0d0f17;
+  background: #151a2c;
   border-bottom: var(--border-thick);
 }
 
@@ -187,7 +187,7 @@ body {
   height: 130px;
   flex-shrink: 0;
   position: relative;
-  background: #0e1019;
+  background: #15192a;
   border-radius: 50%;
   border: var(--border-thick);
   box-shadow: var(--shadow-block-sm);
@@ -207,7 +207,7 @@ body {
   background: var(--bg-input);
   padding: 8px 12px;
   border-radius: var(--radius-sm);
-  border: 1.5px solid #2e3348;
+  border: 1.5px solid #3d4668;
 }
 
 .ring-label-group {
@@ -249,7 +249,7 @@ body {
 
 /* Calorie Deficit Hero Banner */
 .deficit-card {
-  background: #171b2b;
+  background: #1d253c;
   border: 2.5px solid var(--neo-cyan);
   box-shadow: var(--shadow-block-cyan);
 }
@@ -278,9 +278,9 @@ body {
 
 .progress-bar-track {
   height: 16px;
-  background: #090a10;
+  background: #111422;
   border-radius: var(--radius-sm);
-  border: 2px solid #2e3348;
+  border: 2px solid #3d4668;
   overflow: hidden;
   position: relative;
 }
@@ -294,7 +294,7 @@ body {
 
 /* Hydration / Water Tracker Card (New) */
 .water-card {
-  background: #121927;
+  background: #172338;
   border: 2.5px solid var(--neo-cyan);
   box-shadow: var(--shadow-block-sm);
 }
@@ -325,7 +325,7 @@ body {
 }
 
 .sleep-card {
-  border-color: #a374ff !important;
+  border-color: var(--neo-purple) !important;
   margin-bottom: 18px;
 }
 
@@ -387,7 +387,7 @@ body {
 
 .macro-box {
   background: var(--bg-input);
-  border: 2px solid #2e3348;
+  border: 2px solid #3d4668;
   border-radius: var(--radius-sm);
   padding: 10px 6px;
   text-align: center;
@@ -433,8 +433,8 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 12px 14px;
-  background: #171b28;
-  border-bottom: 2px solid #2e3348;
+  background: #232a42;
+  border-bottom: 2px solid #3d4668;
 }
 
 .meal-title {
@@ -457,7 +457,7 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 12px 14px;
-  border-bottom: 1px solid #232738;
+  border-bottom: 1px solid #2b334e;
   font-size: 13px;
 }
 
@@ -497,7 +497,7 @@ body {
 
 .btn-delete {
   background: var(--bg-input);
-  border: 1.5px solid #2e3348;
+  border: 1.5px solid #3d4668;
   border-radius: 4px;
   color: var(--neo-punch);
   cursor: pointer;
@@ -642,7 +642,7 @@ body {
   padding: 10px 12px;
   background: var(--bg-card);
   border-radius: var(--radius-sm);
-  border: 1.5px solid #2e3348;
+  border: 1.5px solid #3d4668;
   border-left: 4px solid var(--neo-lime);
 }
 
@@ -710,7 +710,7 @@ body {
   bottom: 0;
   left: 0;
   right: 0;
-  background: #0d0f17;
+  background: #151a2c;
   border-top: var(--border-thick);
   display: flex;
   justify-content: space-around;
@@ -766,7 +766,7 @@ body {
 }
 
 .modal-sheet {
-  background: #11131c;
+  background: #1c2236;
   border-top-left-radius: 20px;
   border-top-right-radius: 20px;
   border: var(--border-thick);
@@ -844,7 +844,7 @@ body {
 .form-input, .form-textarea, .form-select {
   width: 100%;
   background: var(--bg-input);
-  border: 2px solid #2e3348;
+  border: 2px solid #3d4668;
   border-radius: var(--radius-sm);
   color: var(--text-main);
   padding: 12px 14px;
@@ -954,23 +954,23 @@ body {
 
 .chat-bubble.coach {
   align-self: flex-start;
-  background: #1e2233;
+  background: #232940;
   color: var(--text-main);
-  border-color: #2e3348;
+  border-color: #3d4668;
 }
 
 .chat-input-row {
   display: flex;
   gap: 8px;
   padding: 10px 14px;
-  background: #141724;
-  border-top: 2px solid #2e3348;
+  background: #1c2236;
+  border-top: 2px solid #3d4668;
 }
 
 .chat-input {
   flex: 1;
   background: var(--bg-input);
-  border: 2px solid #2e3348;
+  border: 2px solid #3d4668;
   border-radius: var(--radius-sm);
   color: #fff;
   padding: 10px 14px;
@@ -1074,7 +1074,7 @@ body {
 .equipment-guide-section {
   margin-top: 12px;
   background: var(--bg-input);
-  border: 1.5px solid #2e3348;
+  border: 1.5px solid #3d4668;
   border-radius: var(--radius-sm);
   padding: 10px 12px;
 }

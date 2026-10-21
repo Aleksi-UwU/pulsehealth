@@ -847,16 +847,17 @@ function renderTrendsCharts(history) {
     }
 
     // Label
-    ctx.fillStyle = "#8E95A5";
+    ctx.fillStyle = "#C5CDE3";
     ctx.font = "10px sans-serif";
     ctx.textAlign = "center";
     const dayLabel = item.date.slice(5);
     ctx.fillText(dayLabel, x + barWidth / 2, h - 8);
+    ctx.fillStyle = "#FFFFFF";
     ctx.fillText(`${Math.round(deficit)}`, x + barWidth / 2, zeroY - barHeight - 4);
   });
 
   // Zero line
-  ctx.strokeStyle = "rgba(255,255,255,0.15)";
+  ctx.strokeStyle = "rgba(255,255,255,0.25)";
   ctx.beginPath();
   ctx.moveTo(10, h * 0.6);
   ctx.lineTo(w - 10, h * 0.6);
@@ -876,7 +877,7 @@ function renderTrendsCharts(history) {
     const targetY = sh - 25 - (8.0 / maxSleep) * (sh - 50);
 
     // Target benchmark dashed line (8 hrs)
-    sCtx.strokeStyle = "rgba(163, 116, 255, 0.4)";
+    sCtx.strokeStyle = "rgba(179, 102, 255, 0.5)";
     sCtx.setLineDash([4, 4]);
     sCtx.beginPath();
     sCtx.moveTo(10, targetY);
@@ -884,7 +885,7 @@ function renderTrendsCharts(history) {
     sCtx.stroke();
     sCtx.setLineDash([]);
 
-    sCtx.fillStyle = "#a374ff";
+    sCtx.fillStyle = "#B366FF";
     sCtx.font = "9px sans-serif";
     sCtx.textAlign = "right";
     sCtx.fillText("8h target", sw - 12, targetY - 4);
@@ -895,11 +896,11 @@ function renderTrendsCharts(history) {
       const sBarHeight = Math.min((hrs / maxSleep) * (sh - 50), sh - 50);
       const sy = sh - 25 - sBarHeight;
 
-      sCtx.fillStyle = hrs >= 7.5 ? "#a374ff" : (hrs >= 6.0 ? "#CCFF00" : "#FF2A6D");
+      sCtx.fillStyle = hrs >= 7.5 ? "#B366FF" : (hrs >= 6.0 ? "#D4FF00" : "#FF3377");
       sCtx.fillRect(sx, sy, sBarWidth, sBarHeight);
 
       // Label
-      sCtx.fillStyle = "#8E95A5";
+      sCtx.fillStyle = "#C5CDE3";
       sCtx.font = "10px sans-serif";
       sCtx.textAlign = "center";
       sCtx.fillText(item.date.slice(5), sx + sBarWidth / 2, sh - 8);
