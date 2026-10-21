@@ -163,6 +163,37 @@ function renderDashboard(data) {
   if (waterTarget) waterTarget.textContent = waterData.target_ml;
   if (waterBar) waterBar.style.width = `${waterData.percentage}%`;
 
+  // Sleep & Recovery Tracker
+  const sleepData = data.sleep || {
+    hours: h.sleep_hours || 0,
+    deep_hours: h.sleep_deep_hours || 0,
+    target_hours: 8.0,
+    score: h.sleep_hours ? Math.min(100, Math.round((h.sleep_hours / 8.0) * 70 + (Math.min(h.hrv_ms || 50, 80) / 80) * 30)) : null,
+    quality: h.sleep_hours >= 7.5 ? "Optimal" : (h.sleep_hours >= 6 ? "Fair" : (h.sleep_hours > 0 ? "Low" : "Unrecorded")),
+    percentage: Math.min(Math.round(((h.sleep_hours || 0) / 8.0) * 100), 100)
+  };
+  const sleepVal = document.getElementById("sleep-duration-val");
+  const sleepBar = document.getElementById("sleep-bar-fill");
+  const sleepScoreEl = document.getElementById("sleep-score-text");
+  const sleepDeepEl = document.getElementById("sleep-deep-text");
+  const sleepHoursInput = document.getElementById("sleep-hours-input");
+  const sleepDeepInput = document.getElementById("sleep-deep-input");
+
+  if (sleepVal) sleepVal.textContent = sleepData.hours ? sleepData.hours.toFixed(1) : "0.0";
+  if (sleepBar) sleepBar.style.width = `${sleepData.percentage}%`;
+  if (sleepScoreEl) {
+    sleepScoreEl.textContent = sleepData.score ? `Recovery Score: ${sleepData.score}/100 (${sleepData.quality})` : "Recovery Score: Unrecorded";
+  }
+  if (sleepDeepEl) {
+    sleepDeepEl.textContent = `Deep Sleep: ${sleepData.deep_hours > 0 ? sleepData.deep_hours.toFixed(1) + ' hrs' : '--'}`;
+  }
+  if (sleepHoursInput && !sleepHoursInput.matches(":focus")) {
+    sleepHoursInput.value = sleepData.hours || 7.5;
+  }
+  if (sleepDeepInput && !sleepDeepInput.matches(":focus")) {
+    sleepDeepInput.value = sleepData.deep_hours || 1.5;
+  }
+
   // Macros on Today tab
   const pTarget = prof.daily_protein_target || 140;
   const cTarget = prof.daily_carb_target || 180;
@@ -797,6 +828,116 @@ function renderTrendsCharts(history) {
   ctx.moveTo(10, h * 0.6);
   ctx.lineTo(w - 10, h * 0.6);
   ctx.stroke();
+
+  // Draw 7-day Sleep Duration Bar Chart
+  const sleepCanvas = document.getElementById("sleep-trends-canvas");
+  if (sleepCanvas && history.length) {
+    const sCtx = sleepCanvas.getContext("2d");
+    const sw = sleepCanvas.width;
+    const sh = sleepCanvas.height;
+    sCtx.clearRect(0, 0, sw, sh);
+
+    const sBarWidth = 32;
+    const sGap = (sw - (sBarWidth * last7.length)) / (last7.length + 1);
+    const maxSleep = 10.0;
+    const targetY = sh - 25 - (8.0 / maxSleep) * (sh - 50);
+
+    // Target benchmark dashed line (8 hrs)
+    sCtx.strokeStyle = "rgba(163, 116, 255, 0.4)";
+    sCtx.setLineDash([4, 4]);
+    sCtx.beginPath();
+    sCtx.moveTo(10, targetY);
+    sCtx.lineTo(sw - 10, targetY);
+    sCtx.stroke();
+    sCtx.setLineDash([]);
+
+    sCtx.fillStyle = "#a374ff";
+    sCtx.font = "9px sans-serif";
+    sCtx.textAlign = "right";
+    sCtx.fillText("8h target", sw - 12, targetY - 4);
+
+    last7.forEach((item, i) => {
+      const sx = sGap + i * (sBarWidth + sGap);
+      const hrs = item.sleep_hours || 0;
+      const sBarHeight = Math.min((hrs / maxSleep) * (sh - 50), sh - 50);
+      const sy = sh - 25 - sBarHeight;
+
+      sCtx.fillStyle = hrs >= 7.5 ? "#a374ff" : (hrs >= 6.0 ? "#CCFF00" : "#FF2A6D");
+      sCtx.fillRect(sx, sy, sBarWidth, sBarHeight);
+
+      // Label
+      sCtx.fillStyle = "#8E95A5";
+      sCtx.font = "10px sans-serif";
+      sCtx.textAlign = "center";
+      sCtx.fillText(item.date.slice(5), sx + sBarWidth / 2, sh - 8);
+      sCtx.fillStyle = "#FFFFFF";
+      sCtx.fillText(hrs > 0 ? `${hrs.toFixed(1)}h` : "--", sx + sBarWidth / 2, sy - 4);
+    });
+  }
+}
+
+// --- Sleep Tracking Operations ---
+async function quickLogSleep(hours) {
+  if (navigator.vibrate) navigator.vibrate(15);
+  try {
+    const res = await fetch("/api/sleep/log", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sleep_hours: hours,
+        sleep_deep_hours: Math.round(hours * 0.2 * 10) / 10
+      })
+    });
+    if (res.ok) {
+      await loadDashboard();
+    }
+  } catch (err) {
+    alert("Failed to log sleep: " + err.message);
+  }
+}
+
+function autoCalcSleepHours() {
+  const bed = document.getElementById("sleep-bedtime-input").value;
+  const wake = document.getElementById("sleep-waketime-input").value;
+  if (!bed || !wake) return;
+
+  const [bH, bM] = bed.split(":").map(Number);
+  const [wH, wM] = wake.split(":").map(Number);
+  let bMin = bH * 60 + bM;
+  let wMin = wH * 60 + wM;
+  if (wMin <= bMin) wMin += 1440; // crosses midnight
+
+  const totalHrs = Math.round(((wMin - bMin) / 60) * 10) / 10;
+  document.getElementById("sleep-hours-input").value = totalHrs;
+  document.getElementById("sleep-deep-input").value = Math.round(totalHrs * 0.2 * 10) / 10;
+}
+
+async function submitSleepLog() {
+  const hours = parseFloat(document.getElementById("sleep-hours-input").value) || 0;
+  const deep = parseFloat(document.getElementById("sleep-deep-input").value) || 0;
+  if (hours <= 0) {
+    alert("Please enter a valid sleep duration.");
+    return;
+  }
+
+  try {
+    const res = await fetch("/api/sleep/log", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sleep_hours: hours,
+        sleep_deep_hours: deep
+      })
+    });
+    if (res.ok) {
+      closeModal("modal-sleep");
+      await loadDashboard();
+    } else {
+      alert("Error saving sleep log.");
+    }
+  } catch (err) {
+    alert("Failed to save sleep: " + err.message);
+  }
 }
 
 // --- Instant Apple Watch Trigger ---

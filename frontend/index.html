@@ -135,6 +135,32 @@
         </div>
       </div>
 
+      <!-- Sleep & Recovery Tracker Card -->
+      <div class="glass-card sleep-card">
+        <div class="section-header">
+          <div class="section-title">
+            <span>🌙 Sleep & Recovery</span>
+          </div>
+          <div style="font-size: 13px; font-weight: 900; color: #a374ff;">
+            <span id="sleep-duration-val">0.0</span> / 8.0 hrs
+            <span class="section-badge" id="sleep-badge-val" style="margin-left: 6px; background: rgba(163, 116, 255, 0.2); color: #a374ff; border: 1.5px solid #a374ff; font-size: 10px; cursor: pointer;" onclick="openModal('modal-sleep')">Edit ➔</span>
+          </div>
+        </div>
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill" id="sleep-bar-fill" style="width: 0%; background: #a374ff;"></div>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; font-size: 11px; font-weight: 700; color: var(--text-dim);">
+          <span id="sleep-score-text">Recovery Score: --</span>
+          <span id="sleep-deep-text">Deep Sleep: --</span>
+        </div>
+        <div class="water-btn-grid" style="grid-template-columns: repeat(4, 1fr); margin-top: 10px;">
+          <button class="btn-water" style="border-color: #a374ff; color: #a374ff;" onclick="quickLogSleep(6.5)">6.5h</button>
+          <button class="btn-water" style="border-color: #a374ff; color: #a374ff;" onclick="quickLogSleep(7.0)">7.0h</button>
+          <button class="btn-water" style="border-color: #a374ff; color: #a374ff;" onclick="quickLogSleep(7.5)">7.5h</button>
+          <button class="btn-water" style="border-color: #a374ff; color: #a374ff;" onclick="quickLogSleep(8.0)">8.0h</button>
+        </div>
+      </div>
+
       <!-- Biometrics Mini Grid -->
       <div class="bio-grid">
         <div class="bio-card">
@@ -153,13 +179,13 @@
           <div class="bio-val" id="bio-hrv">--</div>
           <div class="bio-sub">Nervous Readiness</div>
         </div>
-        <div class="bio-card">
+        <div class="bio-card" style="cursor: pointer;" onclick="openModal('modal-sleep')">
           <div class="bio-header">
             <span class="bio-title">Sleep Duration</span>
             <span class="bio-icon">🌙</span>
           </div>
           <div class="bio-val" id="bio-sleep">--</div>
-          <div class="bio-sub">Sleep tracking</div>
+          <div class="bio-sub">Tap to log / edit ➔</div>
         </div>
         <div class="bio-card">
           <div class="bio-header">
@@ -350,6 +376,20 @@
           Bars represent daily net deficit (kcal). Cyan bars indicate you achieved the ≥500 kcal deficit sweet spot.
         </p>
         <canvas id="trends-canvas" width="340" height="180" style="width: 100%; border-radius: 12px; background: var(--bg-input);"></canvas>
+      </div>
+
+      <!-- 7-Day Sleep Duration Trends -->
+      <div class="glass-card" style="margin-top: 14px;">
+        <div class="section-header">
+          <div class="section-title">
+            <span>🌙 7-Day Sleep Duration</span>
+          </div>
+          <span class="section-badge" style="background: rgba(163, 116, 255, 0.2); color: #a374ff; border: 1.5px solid #a374ff;">8h Target</span>
+        </div>
+        <p style="font-size: 12px; color: var(--text-dim); margin-bottom: 12px;">
+          Adequate sleep (7-9h) keeps recovery high and regulates hunger hormones during caloric deficits.
+        </p>
+        <canvas id="sleep-trends-canvas" width="340" height="180" style="width: 100%; border-radius: 12px; background: var(--bg-input);"></canvas>
       </div>
 
       <div class="glass-card">
@@ -713,6 +753,59 @@
 
       <!-- Dynamic Results Container -->
       <div id="equipment-results-container" style="margin-top: 14px;"></div>
+    </div>
+  </div>
+
+  <!-- MODAL: SLEEP TRACKER -->
+  <div class="modal-overlay" id="modal-sleep">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-header">
+        <div class="modal-title">🌙 Sleep & Rest Tracker</div>
+        <button class="btn-close" onclick="closeModal('modal-sleep')">✕</button>
+      </div>
+      <p style="font-size: 12px; color: var(--text-dim); margin-bottom: 12px;">
+        Log or adjust last night's sleep duration. Synced automatically with Apple Watch S10 or manually overridden below.
+      </p>
+
+      <!-- Quick time calculator helper -->
+      <div style="background: var(--bg-input); border: 1.5px solid #2e3348; border-radius: var(--radius-sm); padding: 10px 12px; margin-bottom: 12px;">
+        <div style="font-size: 11px; font-weight: 800; color: #a374ff; text-transform: uppercase; margin-bottom: 6px;">⏱️ Quick Bedtime Calculator</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+          <div>
+            <label class="form-label" style="font-size: 10px;">Fell Asleep</label>
+            <input type="time" id="sleep-bedtime-input" class="form-input" value="23:30" onchange="autoCalcSleepHours()" />
+          </div>
+          <div>
+            <label class="form-label" style="font-size: 10px;">Woke Up</label>
+            <input type="time" id="sleep-waketime-input" class="form-input" value="07:00" onchange="autoCalcSleepHours()" />
+          </div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <div class="form-group">
+          <label class="form-label">Total Sleep (Hours)</label>
+          <input type="number" step="0.1" id="sleep-hours-input" class="form-input" value="7.5" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Deep Sleep (Hours)</label>
+          <input type="number" step="0.1" id="sleep-deep-input" class="form-input" value="1.5" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">How do you feel today?</label>
+        <select id="sleep-quality-select" class="form-select">
+          <option value="optimal">⚡ Rested & Primed (Ready to Train)</option>
+          <option value="good" selected>✨ Normal / Refreshed</option>
+          <option value="low">🥱 Groggy / Fatigued</option>
+        </select>
+      </div>
+
+      <button class="btn-primary" style="background: #a374ff; color: #000;" onclick="submitSleepLog()">
+        Save Sleep Record
+      </button>
     </div>
   </div>
 

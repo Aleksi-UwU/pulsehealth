@@ -95,6 +95,11 @@ class WaterLogRequest(BaseModel):
     amount_ml: int
     date: Optional[str] = None
 
+class SleepLogRequest(BaseModel):
+    sleep_hours: float
+    sleep_deep_hours: Optional[float] = 0.0
+    date: Optional[str] = None
+
 # --- API Endpoints ---
 
 @app.get("/api/profile")
@@ -157,10 +162,24 @@ def get_dashboard_summary(target_date: Optional[str] = None):
     calories_remaining = daily_budget - calories_in
     water_ml = db.get_water_intake(d)
 
+    sleep_hrs = round(health.get("sleep_hours") or 0.0, 1)
+    sleep_deep = round(health.get("sleep_deep_hours") or 0.0, 1)
+    hrv = health.get("hrv_ms") or 0.0
+    sleep_score = min(100, max(0, round((sleep_hrs / 8.0) * 70 + (min(hrv, 80.0) / 80.0) * 30))) if sleep_hrs > 0 else 0
+    sleep_quality = "Optimal" if sleep_hrs >= 7.5 else ("Fair" if sleep_hrs >= 6.0 else ("Low" if sleep_hrs > 0 else "Unrecorded"))
+
     return {
         "date": d,
         "profile": profile,
         "health": health,
+        "sleep": {
+            "hours": sleep_hrs,
+            "deep_hours": sleep_deep,
+            "target_hours": 8.0,
+            "score": sleep_score,
+            "quality": sleep_quality,
+            "percentage": min(round((sleep_hrs / 8.0) * 100), 100)
+        },
         "water": {
             "total_ml": water_ml,
             "target_ml": 3000,
@@ -310,6 +329,17 @@ def log_water_intake(req: WaterLogRequest):
     d = req.date or date.today().isoformat()
     total = db.add_water_intake(d, req.amount_ml)
     return {"status": "success", "total_ml": total, "target_ml": 3000}
+
+@app.post("/api/sleep/log")
+def log_sleep_record(req: SleepLogRequest):
+    d = req.date or date.today().isoformat()
+    saved = db.upsert_health_metrics({
+        "date": d,
+        "sleep_hours": round(req.sleep_hours, 1),
+        "sleep_deep_hours": round(req.sleep_deep_hours or 0.0, 1),
+        "source": "sleep_tracker"
+    })
+    return {"status": "success", "metrics": saved}
 
 @app.post("/api/food/parse-text")
 def parse_food_from_text(req: TextParseRequest):

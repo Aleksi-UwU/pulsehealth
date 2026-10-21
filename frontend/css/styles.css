@@ -324,6 +324,11 @@ body {
   box-shadow: var(--shadow-pressed);
 }
 
+.sleep-card {
+  border-color: #a374ff !important;
+  margin-bottom: 18px;
+}
+
 /* Biometric Mini Grid */
 .bio-grid {
   display: grid;
